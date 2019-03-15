@@ -119,7 +119,7 @@ echo Install Nagios NRPE Server
       apt install -y nagios-nrpe-server nagios-plugins-basic # Ubuntu / Debian
       wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
       mv check_service $deb_plugin
-      chmod+x $deb_plugin/check_service
+      chmod +x $deb_plugin/check_service
     
     elif [ "$distribution" = "Fedora" ]; then
       dnf install -y epel-release
@@ -127,7 +127,7 @@ echo Install Nagios NRPE Server
       dnf install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs # Fedora
       wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
       mv check_service $rhel_plugin
-      chmod+x $rhel_plugin/check_service
+      chmod +x $rhel_plugin/check_service
     
     elif [ "$distribution" = "CentOS" ]; then
       yum install -y epel-release
