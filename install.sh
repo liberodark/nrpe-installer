@@ -36,11 +36,15 @@ if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
+rhel_plugin=/usr/lib64/nagios/plugins/
+rhel_nrpe=/etc/nrpe.d/
+deb_plugin=/usr/lib/nagios/plugins/
+deb_nrpe=/etc/nagios/nrpe.d/
+test ! -e "$deb_plugin" || echo "This path already contains a folder" exit
+test ! -e "$deb_nrpe" || echo "This path already contains a folder" exit
 
-plugin=/usr/lib/nagios/plugins/
-final_path=/etc/nagios/nrpe.d/
-test ! -e "$final_path" || echo "This path already contains a folder" exit
-test ! -e "$plugin" || echo "This path already contains a folder" exit
+test ! -e "$rhel_plugin" || echo "This path already contains a folder" exit
+test ! -e "$rhel_nrpe" || echo "This path already contains a folder" exit
 
 #==============================================
 # FIREWALL
@@ -50,7 +54,7 @@ echo Install Nagios NRPE Server
 iptables -A INPUT -p tcp -m tcp --dport 5666 -j ACCEPT &> /dev/null
 
 #==============================================
-# INSTALL DEPS
+# INSTALL NRPE Debian
 #==============================================
 echo Install Nagios NRPE Server
 
@@ -58,8 +62,20 @@ apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null
 yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs &> /dev/null
 
 wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
-mv check_service $plugin
-chmod+x $plugin/check_service
+mv check_service $deb_plugin
+chmod+x $deb_plugin/check_service
+
+#==============================================
+# INSTALL NRPE Centos
+#==============================================
+echo Install Nagios NRPE Server
+
+apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null
+yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs &> /dev/null
+
+wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
+mv check_service $rhel_plugin
+chmod+x $rhel_plugin/check_service
 
 #==============================================
 # SystemD
@@ -67,9 +83,10 @@ chmod+x $plugin/check_service
 echo Stop Nagios NRPE Server Service
 
 systemctl stop nagios-nrpe-server &> /dev/null
+systemctl stop nrpe &> /dev/null
 
 #==============================================
-# Install Configuration
+# Install Configuration Debian
 #==============================================
 echo Install Nagios NRPE Configurations
 
@@ -95,7 +112,39 @@ command[total_procs]=/usr/lib/nagios/plugins/check_procs -w 190 -c 200
 command[proc_named]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C named
 command[proc_crond]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:5 -C cron
 command[proc_syslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C syslog-ng
-command[proc_rsyslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd' > $final_path/commands.cfg
+command[proc_rsyslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd' > $deb_nrpe/commands.cfg
+
+#==============================================
+# Install Configuration Centos
+#==============================================
+echo Install Nagios NRPE Configurations
+
+echo
+'################################################################################
+#
+# nrpe command configuration file
+#
+# COMMAND DEFINITIONS
+# Syntax:
+#       command[<command_name>]=<command_line>
+#
+command[service]=/usr/lib/nagios/plugins/check_service -o linux -t "systemctl list-units --state=failed"
+command[users]=/usr/lib64/nagios/plugins/check_users -w 5 -c 10
+command[load]=/usr/lib64/nagios/plugins/check_load -w 15,10,5 -c 30,25,20
+command[check_load]=/usr/lib64/nagios/plugins/check_load -w 15,10,5 -c 30,25,20
+command[swap]=/usr/lib64/nagios/plugins/check_swap -w 20% -c 10%
+command[root_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p / -m
+command[usr_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /usr -m
+command[var_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /var -m
+command[zombie_procs]=/usr/lib64/nagios/plugins/check_procs -w 5 -c 10 -s Z
+command[total_procs]=/usr/lib64/nagios/plugins/check_procs -w 190 -c 200
+command[proc_named]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C named
+command[proc_crond]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:5 -C crond
+command[proc_syslogd]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C syslog-ng
+command[proc_rsyslogd]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd' > $rhel_nrpe/commands.cfg
 
 systemctl enable nagios-nrpe-server &> /dev/null
 systemctl start nagios-nrpe-server &> /dev/null
+
+systemctl enable nrpe &> /dev/null
+systemctl start nrpe &> /dev/null
