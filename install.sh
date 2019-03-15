@@ -47,8 +47,8 @@ deb_nrpe=/etc/nagios/nrpe.d
 test ! -e "$deb_plugin" || echo "This path already contains a folder" ; exit
 test ! -e "$deb_nrpe" || echo "This path already contains a folder" ; exit
 
-deb_conf=$(
-echo'################################################################################
+deb_conf=$(echo
+'################################################################################
 #
 # nrpe command configuration file
 #
@@ -71,8 +71,8 @@ command[proc_crond]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:5 -C cron
 command[proc_syslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C syslog-ng
 command[proc_rsyslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd' > $deb_nrpe/commands.cfg &> /dev/null)
 
-rhel_conf=$(
-echo'################################################################################
+rhel_conf=$(echo
+'################################################################################
 #
 # nrpe command configuration file
 #
@@ -115,13 +115,13 @@ echo Install Nagios NRPE Server
     echo "nrpe is not Installed"
      distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 
-    if [ "$distribution" = "Ubuntu" ]; then
+    if [ "$distribution" = "*Ubuntu" ]; then
       apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null # Ubuntu / Debian
       wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
       mv check_service $deb_plugin
       chmod +x $deb_plugin/check_service
     
-    elif [ "$distribution" = "Fedora" ]; then
+    elif [ "$distribution" = "*Fedora" ]; then
       dnf install -y epel-release &> /dev/null
       dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm &> /dev/null
       dnf install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs &> /dev/null# Fedora
@@ -129,7 +129,7 @@ echo Install Nagios NRPE Server
       mv check_service $rhel_plugin
       chmod +x $rhel_plugin/check_service
     
-    elif [ "$distribution" = "CentOS" ]; then
+    elif [ "$distribution" = "*CentOS" ]; then
       yum install -y epel-release &> /dev/null
       yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm &> /dev/null
       yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs &> /dev/null # OpenSuse / CentOS
@@ -137,7 +137,7 @@ echo Install Nagios NRPE Server
       mv check_service $rhel_plugin
       chmod+x $rhel_plugin/check_service
     
-    elif [ "$distribution" = "Debian" ]; then
+    elif [ "$distribution" = "*Debian" ]; then
       apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null # Ubuntu / Debian
       wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
       mv check_service $deb_plugin
@@ -158,16 +158,16 @@ echo Stop Nagios NRPE Server Service
   if [ $? != 1 ]; then
      distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 
-    if [ "$distribution" = "Ubuntu" ]; then
+    if [ "$distribution" = "*Ubuntu" ]; then
       systemctl stop nagios-nrpe-server # Ubuntu / Debian
     
-    elif [ "$distribution" = "Fedora" ]; then
+    elif [ "$distribution" = "*Fedora" ]; then
       systemctl stop nrpe # Fedora
     
-    elif [ "$distribution" = "CentOS" ]; then
+    elif [ "$distribution" = "*CentOS" ]; then
       systemctl stop nrpe # OpenSuse / CentOS
     
-    elif [ "$distribution" = "Debian" ]; then
+    elif [ "$distribution" = "*Debian" ]; then
       systemctl stop nagios-nrpe-server # Ubuntu / Debian
       
     fi
@@ -184,16 +184,16 @@ echo Install Nagios NRPE Configurations
   if [ $? != 1 ]; then
      distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 
-    if [ "$distribution" = "Ubuntu" ]; then
+    if [ "$distribution" = "*Ubuntu" ]; then
       $deb_conf # Ubuntu / Debian
     
-    elif [ "$distribution" = "Fedora" ]; then
+    elif [ "$distribution" = "*Fedora" ]; then
       $rhel_conf # Fedora
     
-    elif [ "$distribution" = "CentOS" ]; then
+    elif [ "$distribution" = "*CentOS" ]; then
       $rhel_conf # OpenSuse / CentOS
     
-    elif [ "$distribution" = "Debian" ]; then
+    elif [ "$distribution" = "*Debian" ]; then
       $deb_conf # Ubuntu / Debian
       
     fi
@@ -210,19 +210,19 @@ echo Start & Enable Nagios NRPE Server Service
   if [ $? != 1 ]; then
      distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 
-    if [ "$distribution" = "Ubuntu" ]; then
+    if [ "$distribution" = "*Ubuntu" ]; then
       systemctl enable nagios-nrpe-server # Ubuntu / Debian
       systemctl start nagios-nrpe-server # Ubuntu / Debian
     
-    elif [ "$distribution" = "Fedora" ]; then
+    elif [ "$distribution" = "*Fedora" ]; then
       systemctl start nrpe # Fedora
       systemctl enable nrpe # Fedora
     
-    elif [ "$distribution" = "CentOS" ]; then
+    elif [ "$distribution" = "*CentOS" ]; then
       systemctl start nrpe # Fedora
       systemctl enable nrpe # Fedora
     
-    elif [ "$distribution" = "Debian" ]; then
+    elif [ "$distribution" = "*Debian" ]; then
       systemctl enable nagios-nrpe-server # Ubuntu / Debian
       systemctl start nagios-nrpe-server # Ubuntu / Debian
       
