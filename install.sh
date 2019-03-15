@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # About: Install NRPE automatically
-# Author: liberodark
+# Author: liberodark, frju365
 # License: GNU GPLv3
 
 #=================================================
