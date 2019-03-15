@@ -9,7 +9,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.0.4"
+  version="0.0.5"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -47,7 +47,7 @@ deb_nrpe=/etc/nagios/nrpe.d
 test ! -e "$deb_plugin" || echo "This path already contains a folder" ; exit
 test ! -e "$deb_nrpe" || echo "This path already contains a folder" ; exit
 
-deb_conf=$(echo
+deb_conf=$(
 '################################################################################
 #
 # nrpe command configuration file
@@ -69,9 +69,9 @@ command[total_procs]=/usr/lib/nagios/plugins/check_procs -w 190 -c 200
 command[proc_named]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C named
 command[proc_crond]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:5 -C cron
 command[proc_syslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C syslog-ng
-command[proc_rsyslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd' > $deb_nrpe/commands.cfg &> /dev/null)
+command[proc_rsyslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd')
 
-rhel_conf=$(echo
+rhel_conf=$(
 '################################################################################
 #
 # nrpe command configuration file
@@ -93,7 +93,7 @@ command[total_procs]=/usr/lib64/nagios/plugins/check_procs -w 190 -c 200
 command[proc_named]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C named
 command[proc_crond]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:5 -C crond
 command[proc_syslogd]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C syslog-ng
-command[proc_rsyslogd]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd' > $rhel_nrpe/commands.cfg &> /dev/null)
+command[proc_rsyslogd]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd')
 
 #==============================================
 # FIREWALL
@@ -120,6 +120,7 @@ echo Install Nagios NRPE Server
       wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
       mv check_service $deb_plugin
       chmod +x $deb_plugin/check_service
+      echo $deb_conf > $deb_nrpe/commands.cfg &> /dev/null
     
     elif [ "$distribution" = "*Fedora" ]; then
       dnf install -y epel-release &> /dev/null
@@ -128,6 +129,7 @@ echo Install Nagios NRPE Server
       wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
       mv check_service $rhel_plugin
       chmod +x $rhel_plugin/check_service
+      echo $rhel_conf > $rhel_nrpe/commands.cfg &> /dev/null
     
     elif [ "$distribution" = "*CentOS" ]; then
       yum install -y epel-release &> /dev/null
@@ -136,12 +138,14 @@ echo Install Nagios NRPE Server
       wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
       mv check_service $rhel_plugin
       chmod+x $rhel_plugin/check_service
+      echo $rhel_conf > $rhel_nrpe/commands.cfg &> /dev/null
     
     elif [ "$distribution" = "*Debian" ]; then
       apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null # Ubuntu / Debian
       wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
       mv check_service $deb_plugin
       chmod+x $deb_plugin/check_service
+      echo $deb_conf > $deb_nrpe/commands.cfg &> /dev/null
       
     fi
     else
