@@ -99,7 +99,7 @@ command[proc_rsyslogd]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C rsy
 #==============================================
 echo "Open Port NRPE Server"
 
-iptables -A INPUT -p tcp -m tcp --dport 5666 -j ACCEPT &> /dev/null
+iptables -A INPUT -p tcp -m tcp --dport 5666 -j ACCEPT
 
 #==============================================
 # INSTALL NRPE Debian
@@ -115,15 +115,15 @@ echo "Install Nagios NRPE Server"
      distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 
     if [ "$distribution" = "*Ubuntu" ]; then
-      apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null # Ubuntu / Debian
+      apt install -y nagios-nrpe-server nagios-plugins-basic # Ubuntu / Debian
       wget -O check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
       mv check_service $deb_plugin
       chmod +x $deb_plugin/check_service
-      echo -e $deb_conf > $deb_nrpe/commands.cfg &> /dev/null
+      echo -e $deb_conf > $deb_nrpe/commands.cfg
     
     elif [ "$distribution" = "*Fedora" ]; then
-      dnf install -y epel-release &> /dev/null
-      dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm &> /dev/null
+      dnf install -y epel-release
+      dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
       dnf install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs &> /dev/null# Fedora
       wget -O check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
       mv check_service $rhel_plugin
@@ -131,20 +131,20 @@ echo "Install Nagios NRPE Server"
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg &> /dev/null
     
     elif [ "$distribution" = "*CentOS" ]; then
-      yum install -y epel-release &> /dev/null
-      yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm &> /dev/null
-      yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs &> /dev/null # OpenSuse / CentOS
+      yum install -y epel-release
+      yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+      yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs # OpenSuse / CentOS
       wget -O check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
       mv check_service $rhel_plugin
       chmod +x $rhel_plugin/check_service
-      echo -e $rhel_conf > $rhel_nrpe/commands.cfg &> /dev/null
+      echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [ "$distribution" = "*Debian" ]; then
-      apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null # Ubuntu / Debian
+      apt install -y nagios-nrpe-server nagios-plugins-basic # Ubuntu / Debian
       wget -O check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
       mv check_service $deb_plugin
       chmod +x $deb_plugin/check_service
-      echo -e $deb_conf > $deb_nrpe/commands.cfg &> /dev/null
+      echo -e $deb_conf > $deb_nrpe/commands.cfg
       
     fi
     else
