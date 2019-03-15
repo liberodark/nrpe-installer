@@ -9,7 +9,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.2.4"
+  version="0.2.5"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -31,6 +31,13 @@
 #=================================================
 
 if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
+
+#=================================================
+# IP
+#=================================================
+
+echo "What is your server ip ?"
+read $ip
 
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST AND VAR
@@ -151,6 +158,12 @@ echo "Install Nagios NRPE Server"
     else
   echo "nrpe is Installed"
 fi
+
+#==============================================
+# ADD IP IN NAGIOS_PATH
+#==============================================
+
+sed -i "s@allowed_hosts=127.0.0.1,::1@allowed_hosts=127.0.0.1,$ip@g" $nagios_path
 
 #==============================================
 # SystemD
