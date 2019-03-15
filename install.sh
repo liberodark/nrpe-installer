@@ -9,7 +9,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.2.5"
+  version="0.2.6"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -120,7 +120,7 @@ echo "Install Nagios NRPE Server"
   which nrpe &> /dev/null
 
   if [ $? != 0 ]; then
-    echo "nrpe is not Installed"
+    echo "NRPE is not Installed"
 
     if [ "$distribution" = "Ubuntu" ]; then
       apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null # Ubuntu / Debian
@@ -156,7 +156,7 @@ echo "Install Nagios NRPE Server"
       
     fi
     else
-  echo "nrpe is Installed"
+  echo "NRPE is Installed"
 fi
 
 #==============================================
