@@ -70,7 +70,7 @@ systemctl stop nagios-nrpe-server &> /dev/null
 echo Install Nagios NRPE Configurations
 
 echo
-"################################################################################
+'################################################################################
 #
 # nrpe command configuration file
 #
@@ -91,7 +91,7 @@ command[total_procs]=/usr/lib/nagios/plugins/check_procs -w 190 -c 200
 command[proc_named]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C named
 command[proc_crond]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:5 -C cron
 command[proc_syslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C syslog-ng
-command[proc_rsyslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd" > $final_path/commands.cfg
+command[proc_rsyslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd' > $final_path/commands.cfg
 
 systemctl enable nagios-nrpe-server &> /dev/null
 systemctl start nagios-nrpe-server &> /dev/null
