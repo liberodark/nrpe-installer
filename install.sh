@@ -98,14 +98,14 @@ test ! -e "$deb_nrpe" || echo "This path already contains a folder" exit
 #==============================================
 # FIREWALL
 #==============================================
-echo Install Nagios NRPE Server
+echo "Install Nagios NRPE Server"
 
 iptables -A INPUT -p tcp -m tcp --dport 5666 -j ACCEPT &> /dev/null
 
 #==============================================
 # INSTALL NRPE Debian
 #==============================================
-echo Install Nagios NRPE Server
+echo "Install Nagios NRPE Server"
 
   # Check OS & nrpe
 
@@ -155,7 +155,7 @@ fi
 #==============================================
 # SystemD
 #==============================================
-echo Stop Nagios NRPE Server Service
+echo "Stop Nagios NRPE Server Service"
 
 # Check OS & nrpe
 
@@ -180,7 +180,7 @@ fi
 #==============================================
 # Install Configuration
 #==============================================
-echo Install Nagios NRPE Configurations
+echo "Install Nagios NRPE Configurations"
 
 # Check OS & nrpe
 
@@ -205,7 +205,7 @@ fi
 #==============================================
 # SystemD
 #==============================================
-echo Start & Enable Nagios NRPE Server Service
+echo "Start & Enable Nagios NRPE Server Service"
 
 # Check OS & nrpe
 
