@@ -58,6 +58,31 @@ iptables -A INPUT -p tcp -m tcp --dport 5666 -j ACCEPT &> /dev/null
 #==============================================
 echo Install Nagios NRPE Server
 
+  # Check OS & wget
+
+  which nrpe &> /dev/null
+
+  if [ $? != 0 ]; then
+    echo "nrpe is not Installed"
+     distribution=$(cat /etc/issue | head -n +1 | awk '{print $1}')
+
+    if [ "$distribution" = "Ubuntu" ]; then
+      apt install -y nagios-nrpe-server nagios-plugins-basic # Ubuntu / Debian
+    
+    elif [ "$distribution" = "Fedora" ]; then
+      dnf install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs # Fedora
+    
+    elif [ "$distribution" = "CentOS" ]; then
+      yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs # OpenSuse / CentOS
+    
+    elif [ "$distribution" = "Debian" ]; then
+      apt install -y nagios-nrpe-server nagios-plugins-basic # Ubuntu / Debian
+      
+    fi
+    else
+  echo "nrpe is Installed"
+fi
+
 apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null
 yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs &> /dev/null
 
