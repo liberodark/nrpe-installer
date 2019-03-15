@@ -37,13 +37,13 @@ if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
 
-rhel_plugin=/usr/lib64/nagios/plugins/
-rhel_nrpe=/etc/nrpe.d/
+rhel_plugin=/usr/lib64/nagios/plugins
+rhel_nrpe=/etc/nrpe.d
 test ! -e "$rhel_plugin" || echo "This path already contains a folder" exit
 test ! -e "$rhel_nrpe" || echo "This path already contains a folder" exit
 
-deb_plugin=/usr/lib/nagios/plugins/
-deb_nrpe=/etc/nagios/nrpe.d/
+deb_plugin=/usr/lib/nagios/plugins
+deb_nrpe=/etc/nagios/nrpe.d
 test ! -e "$deb_plugin" || echo "This path already contains a folder" exit
 test ! -e "$deb_nrpe" || echo "This path already contains a folder" exit
 
