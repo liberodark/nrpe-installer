@@ -113,7 +113,7 @@ echo Install Nagios NRPE Server
 
   if [ $? != 0 ]; then
     echo "nrpe is not Installed"
-     distribution=$(cat /etc/issue | head -n +1 | awk '{print $1}')
+     distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 
     if [ "$distribution" = "Ubuntu" ]; then
       apt install -y nagios-nrpe-server nagios-plugins-basic # Ubuntu / Debian
@@ -152,7 +152,7 @@ echo Stop Nagios NRPE Server Service
 # Check OS & nrpe
 
   if [ $? != 1 ]; then
-     distribution=$(cat /etc/issue | head -n +1 | awk '{print $1}')
+     distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 
     if [ "$distribution" = "Ubuntu" ]; then
       systemctl stop nagios-nrpe-server # Ubuntu / Debian
@@ -178,7 +178,7 @@ echo Install Nagios NRPE Configurations
 # Check OS & nrpe
 
   if [ $? != 1 ]; then
-     distribution=$(cat /etc/issue | head -n +1 | awk '{print $1}')
+     distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 
     if [ "$distribution" = "Ubuntu" ]; then
       $deb_conf # Ubuntu / Debian
@@ -204,7 +204,7 @@ echo Start & Enable Nagios NRPE Server Service
 # Check OS & nrpe
 
   if [ $? != 1 ]; then
-     distribution=$(cat /etc/issue | head -n +1 | awk '{print $1}')
+     distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 
     if [ "$distribution" = "Ubuntu" ]; then
       systemctl enable nagios-nrpe-server # Ubuntu / Debian
