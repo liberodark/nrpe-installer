@@ -37,7 +37,7 @@ if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
 
-app=pia
+app=nrpe
 final_path=/etc/nagios/nrpe.d/
 test ! -e "$final_path" || echo "This path already contains a folder" exit
 
