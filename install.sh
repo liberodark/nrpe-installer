@@ -9,7 +9,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.2.1"
+  version="0.2.2"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -134,7 +134,7 @@ echo "Install Nagios NRPE Server"
     elif [ "$distribution" = "CentOS" ]; then
       yum install -y epel-release &> /dev/null
       yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm &> /dev/null
-      yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs # OpenSuse / CentOS
+      yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs &> /dev/null # OpenSuse / CentOS
       wget -O check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh &> /dev/null
       mv check_service $rhel_plugin
       chmod +x $rhel_plugin/check_service
