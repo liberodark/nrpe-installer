@@ -9,7 +9,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.1.9"
+  version="0.2.0"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -56,7 +56,7 @@ deb_conf='######################################################################
 # Syntax:\n
 #       command[<command_name>]=<command_line>\n
 #\n
-command[service]=/usr/lib/nagios/plugins/check_service -o linux -t \"systemctl list-units --state=failed\"\n
+command[service]=/usr/lib/nagios/plugins/check_service -o linux -t "systemctl list-units --state=failed"\n
 command[users]=/usr/lib/nagios/plugins/check_users -w 5 -c 10\n
 command[load]=/usr/lib/nagios/plugins/check_load -w 15,10,5 -c 30,25,20\n
 command[check_load]=/usr/lib/nagios/plugins/check_load -w 15,10,5 -c 30,25,20\n
@@ -79,7 +79,7 @@ rhel_conf='#####################################################################
 # Syntax:\n
 #       command[<command_name>]=<command_line>\n
 #\n
-command[service]=/usr/lib/nagios/plugins/check_service -o linux -t \"systemctl list-units --state=failed\"\n
+command[service]=/usr/lib/nagios/plugins/check_service -o linux -t "systemctl list-units --state=failed"\n
 command[users]=/usr/lib64/nagios/plugins/check_users -w 5 -c 10\n
 command[load]=/usr/lib64/nagios/plugins/check_load -w 15,10,5 -c 30,25,20\n
 command[check_load]=/usr/lib64/nagios/plugins/check_load -w 15,10,5 -c 30,25,20\n
