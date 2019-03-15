@@ -40,13 +40,13 @@ nagios_path=/etc/nagios/nrpe.cfg
 
 rhel_plugin=/usr/lib64/nagios/plugins
 rhel_nrpe=/etc/nrpe.d
-test ! -e "$rhel_plugin" || echo "This path already contains a folder" && exit
-test ! -e "$rhel_nrpe" || echo "This path already contains a folder" && exit
+test ! -e "$rhel_plugin" || echo "This path already contains a folder" | exit
+test ! -e "$rhel_nrpe" || echo "This path already contains a folder" | exit
 
 deb_plugin=/usr/lib/nagios/plugins
 deb_nrpe=/etc/nagios/nrpe.d
-test ! -e "$deb_plugin" || echo "This path already contains a folder" && exit
-test ! -e "$deb_nrpe" || echo "This path already contains a folder" && exit
+test ! -e "$deb_plugin" || echo "This path already contains a folder" | exit
+test ! -e "$deb_nrpe" || echo "This path already contains a folder" | exit
 
 deb_conf='################################################################################\n 
 #\n
