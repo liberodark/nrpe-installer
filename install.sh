@@ -58,7 +58,7 @@ iptables -A INPUT -p tcp -m tcp --dport 5666 -j ACCEPT &> /dev/null
 #==============================================
 echo Install Nagios NRPE Server
 
-  # Check OS & wget
+  # Check OS & nrpe
 
   which nrpe &> /dev/null
 
@@ -83,8 +83,8 @@ echo Install Nagios NRPE Server
   echo "nrpe is Installed"
 fi
 
-apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null
-yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs &> /dev/null
+#apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null
+#yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs &> /dev/null
 
 wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
 mv check_service $deb_plugin
@@ -93,10 +93,10 @@ chmod+x $deb_plugin/check_service
 #==============================================
 # INSTALL NRPE Centos
 #==============================================
-echo Install Nagios NRPE Server
+#echo Install Nagios NRPE Server
 
-apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null
-yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs &> /dev/null
+#apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null
+#yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs &> /dev/null
 
 wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
 mv check_service $rhel_plugin
@@ -107,8 +107,29 @@ chmod+x $rhel_plugin/check_service
 #==============================================
 echo Stop Nagios NRPE Server Service
 
-systemctl stop nagios-nrpe-server &> /dev/null
-systemctl stop nrpe &> /dev/null
+# Check OS & nrpe
+
+  if [ $? != 1 ]; then
+     distribution=$(cat /etc/issue | head -n +1 | awk '{print $1}')
+
+    if [ "$distribution" = "Ubuntu" ]; then
+      systemctl stop nagios-nrpe-server # Ubuntu / Debian
+    
+    elif [ "$distribution" = "Fedora" ]; then
+      systemctl stop nrpe # Fedora
+    
+    elif [ "$distribution" = "CentOS" ]; then
+      systemctl stop nrpe # OpenSuse / CentOS
+    
+    elif [ "$distribution" = "Debian" ]; then
+      systemctl stop nagios-nrpe-server # Ubuntu / Debian
+      
+    fi
+    else
+fi
+
+#systemctl stop nagios-nrpe-server &> /dev/null
+#systemctl stop nrpe &> /dev/null
 
 #==============================================
 # Install Configuration Debian
@@ -168,8 +189,38 @@ command[proc_crond]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:5 -C crond
 command[proc_syslogd]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C syslog-ng
 command[proc_rsyslogd]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd' > $rhel_nrpe/commands.cfg
 
-systemctl enable nagios-nrpe-server &> /dev/null
-systemctl start nagios-nrpe-server &> /dev/null
+#==============================================
+# SystemD
+#==============================================
+echo Start & Enable Nagios NRPE Server Service
 
-systemctl enable nrpe &> /dev/null
-systemctl start nrpe &> /dev/null
+# Check OS & nrpe
+
+  if [ $? != 1 ]; then
+     distribution=$(cat /etc/issue | head -n +1 | awk '{print $1}')
+
+    if [ "$distribution" = "Ubuntu" ]; then
+      systemctl enable nagios-nrpe-server # Ubuntu / Debian
+      systemctl start nagios-nrpe-server # Ubuntu / Debian
+    
+    elif [ "$distribution" = "Fedora" ]; then
+      systemctl start nrpe # Fedora
+      systemctl enable nrpe # Fedora
+    
+    elif [ "$distribution" = "CentOS" ]; then
+      systemctl start nrpe # Fedora
+      systemctl enable nrpe # Fedora
+    
+    elif [ "$distribution" = "Debian" ]; then
+      systemctl enable nagios-nrpe-server # Ubuntu / Debian
+      systemctl start nagios-nrpe-server # Ubuntu / Debian
+      
+    fi
+    else
+fi
+
+#systemctl enable nagios-nrpe-server &> /dev/null
+#systemctl start nagios-nrpe-server &> /dev/null
+
+#systemctl enable nrpe &> /dev/null
+#systemctl start nrpe &> /dev/null
