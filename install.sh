@@ -37,10 +37,10 @@ if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
 
-app=nrpe
+plugin=/usr/lib/nagios/plugins/
 final_path=/etc/nagios/nrpe.d/
 test ! -e "$final_path" || echo "This path already contains a folder" exit
-
+test ! -e "$plugin" || echo "This path already contains a folder" exit
 
 #==============================================
 # FIREWALL
@@ -56,6 +56,10 @@ echo Install Nagios NRPE Server
 
 apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null
 yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs &> /dev/null
+
+wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
+mv check_service $plugin
+chmod+x $plugin/check_service
 
 #==============================================
 # SystemD
