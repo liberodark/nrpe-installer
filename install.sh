@@ -209,9 +209,3 @@ echo Start & Enable Nagios NRPE Server Service
     fi
     else
 fi
-
-#systemctl enable nagios-nrpe-server &> /dev/null
-#systemctl start nagios-nrpe-server &> /dev/null
-
-#systemctl enable nrpe &> /dev/null
-#systemctl start nrpe &> /dev/null
