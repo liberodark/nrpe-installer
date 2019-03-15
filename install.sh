@@ -9,7 +9,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.3.0"
+  version="0.3.1"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -37,7 +37,8 @@ if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
 #=================================================
 
 echo "What is your server ip ?"
-read ip
+ip=0.0.0.0
+#read ip
 
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST AND VAR
