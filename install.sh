@@ -8,7 +8,7 @@
 # CHECK UPDATE
 #=================================================
 
-  update_source="https://raw.githubusercontent.com/liberodark/nrpe-install/master/install.sh"
+  update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
   version="1.0.0"
 
   echo "Welcome on PIA Front Install Script $version"
