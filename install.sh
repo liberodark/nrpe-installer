@@ -11,7 +11,7 @@
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
   version="1.0.0"
 
-  echo "Welcome on PIA Front Install Script $version"
+  echo "Welcome on NRPE Install Script $version"
 
   # make update if asked
   if [ "$1" = "noupdate" ]; then
