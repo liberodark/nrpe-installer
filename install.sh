@@ -9,7 +9,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.2.0"
+  version="0.2.1"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -33,8 +33,10 @@
 if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
 
 #=================================================
-# RETRIEVE ARGUMENTS FROM THE MANIFEST
+# RETRIEVE ARGUMENTS FROM THE MANIFEST AND VAR
 #=================================================
+
+distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 
 nagios_path=/etc/nagios/nrpe.cfg
 
@@ -112,7 +114,6 @@ echo "Install Nagios NRPE Server"
 
   if [ $? != 0 ]; then
     echo "nrpe is not Installed"
-     distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 
     if [ "$distribution" = "Ubuntu" ]; then
       apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null # Ubuntu / Debian
@@ -159,7 +160,6 @@ echo "Stop Nagios NRPE Server Service"
 # Check OS & nrpe
 
   if [ $? != 1 ]; then
-     distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 
     if [ "$distribution" = "Ubuntu" ]; then
       systemctl stop nagios-nrpe-server # Ubuntu / Debian
@@ -184,7 +184,6 @@ echo "Start & Enable Nagios NRPE Server Service"
 # Check OS & nrpe
 
   if [ $? != 1 ]; then
-     distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 
     if [ "$distribution" = "Ubuntu" ]; then
       systemctl enable nagios-nrpe-server # Ubuntu / Debian
