@@ -175,7 +175,6 @@ echo Stop Nagios NRPE Server Service
       systemctl stop nagios-nrpe-server # Ubuntu / Debian
       
     fi
-    else
 fi
 
 #==============================================
