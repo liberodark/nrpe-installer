@@ -9,7 +9,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.2.2"
+  version="0.2.3"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -186,20 +186,20 @@ echo "Start & Enable Nagios NRPE Server Service"
   if [ $? != 1 ]; then
 
     if [ "$distribution" = "Ubuntu" ]; then
-      systemctl enable nagios-nrpe-server # Ubuntu / Debian
-      systemctl start nagios-nrpe-server # Ubuntu / Debian
+      systemctl enable nagios-nrpe-server &> /dev/null # Ubuntu / Debian
+      systemctl start nagios-nrpe-server &> /dev/null # Ubuntu / Debian
     
     elif [ "$distribution" = "Fedora" ]; then
-      systemctl start nrpe # Fedora
-      systemctl enable nrpe # Fedora
+      systemctl start nrpe &> /dev/null # Fedora
+      systemctl enable nrpe &> /dev/null # Fedora
     
     elif [ "$distribution" = "CentOS" ]; then
-      systemctl start nrpe # Fedora
-      systemctl enable nrpe # Fedora
+      systemctl start nrpe &> /dev/null # Fedora
+      systemctl enable nrpe &> /dev/null # Fedora
     
     elif [ "$distribution" = "Debian" ]; then
-      systemctl enable nagios-nrpe-server # Ubuntu / Debian
-      systemctl start nagios-nrpe-server # Ubuntu / Debian
+      systemctl enable nagios-nrpe-server &> /dev/null # Ubuntu / Debian
+      systemctl start nagios-nrpe-server &> /dev/null # Ubuntu / Debian
       
     fi
 fi
