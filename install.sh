@@ -9,7 +9,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.2.3"
+  version="0.2.4"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -120,7 +120,7 @@ echo "Install Nagios NRPE Server"
       wget -O check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh &> /dev/null
       mv check_service $deb_plugin
       chmod +x $deb_plugin/check_service
-      echo -e $deb_conf > $deb_nrpe/commands.cfg &> /dev/null
+      echo -e $deb_conf > $deb_nrpe/commands.cfg
     
     elif [ "$distribution" = "Fedora" ]; then
       dnf install -y epel-release &> /dev/null
@@ -129,7 +129,7 @@ echo "Install Nagios NRPE Server"
       wget -O check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh &> /dev/null
       mv check_service $rhel_plugin
       chmod +x $rhel_plugin/check_service
-      echo -e $rhel_conf > $rhel_nrpe/commands.cfg &> /dev/null
+      echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [ "$distribution" = "CentOS" ]; then
       yum install -y epel-release &> /dev/null
@@ -138,14 +138,14 @@ echo "Install Nagios NRPE Server"
       wget -O check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh &> /dev/null
       mv check_service $rhel_plugin
       chmod +x $rhel_plugin/check_service
-      echo -e $rhel_conf > $rhel_nrpe/commands.cfg &> /dev/null
+      echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [ "$distribution" = "Debian" ]; then
       apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null # Ubuntu / Debian
       wget -O check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh &> /dev/null
       mv check_service $deb_plugin
       chmod +x $deb_plugin/check_service
-      echo -e $deb_conf > $deb_nrpe/commands.cfg &> /dev/null
+      echo -e $deb_conf > $deb_nrpe/commands.cfg
       
     fi
     else
