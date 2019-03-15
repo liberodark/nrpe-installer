@@ -9,7 +9,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.0.2"
+  version="0.0.3"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -47,8 +47,7 @@ deb_nrpe=/etc/nagios/nrpe.d
 test ! -e "$deb_plugin" || echo "This path already contains a folder" ; exit
 test ! -e "$deb_nrpe" || echo "This path already contains a folder" ; exit
 
-deb_conf=$(echo
-'################################################################################
+deb_conf=$(echo'################################################################################
 #
 # nrpe command configuration file
 #
@@ -71,8 +70,7 @@ command[proc_crond]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:5 -C cron
 command[proc_syslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C syslog-ng
 command[proc_rsyslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd' > $deb_nrpe/commands.cfg &> /dev/null)
 
-rhel_conf=$(echo
-'################################################################################
+rhel_conf=$(echo'################################################################################
 #
 # nrpe command configuration file
 #
