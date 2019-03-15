@@ -137,14 +137,14 @@ echo "Install Nagios NRPE Server"
       yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs &> /dev/null # OpenSuse / CentOS
       wget -O check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
       mv check_service $rhel_plugin
-      chmod+x $rhel_plugin/check_service
+      chmod +x $rhel_plugin/check_service
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg &> /dev/null
     
     elif [ "$distribution" = "*Debian" ]; then
       apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null # Ubuntu / Debian
       wget -O check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
       mv check_service $deb_plugin
-      chmod+x $deb_plugin/check_service
+      chmod +x $deb_plugin/check_service
       echo -e $deb_conf > $deb_nrpe/commands.cfg &> /dev/null
       
     fi
