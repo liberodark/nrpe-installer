@@ -200,7 +200,6 @@ echo Install Nagios NRPE Configurations
       $deb_conf # Ubuntu / Debian
       
     fi
-    else
 fi
 
 #==============================================
@@ -230,6 +229,5 @@ echo Start & Enable Nagios NRPE Server Service
       systemctl start nagios-nrpe-server # Ubuntu / Debian
       
     fi
-    else
 fi
 exit
