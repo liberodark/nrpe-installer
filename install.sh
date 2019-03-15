@@ -122,12 +122,16 @@ echo Install Nagios NRPE Server
       chmod+x $deb_plugin/check_service
     
     elif [ "$distribution" = "Fedora" ]; then
+      dnf install -y epel-release
+      dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
       dnf install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs # Fedora
       wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
       mv check_service $rhel_plugin
       chmod+x $rhel_plugin/check_service
     
     elif [ "$distribution" = "CentOS" ]; then
+      yum install -y epel-release
+      yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
       yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs # OpenSuse / CentOS
       wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
       mv check_service $rhel_plugin
@@ -225,3 +229,4 @@ echo Start & Enable Nagios NRPE Server Service
     fi
     else
 fi
+exit
