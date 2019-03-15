@@ -9,7 +9,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.3.4"
+  version="0.3.5"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -18,13 +18,14 @@
     update_status="false"
   else
     update_status="true"
-  fi
+  fi ;
 
   # update updater
   if [ "$update_status" = "true" ]; then
     wget -O $0 $update_source
     $0 noupdate
-  fi
+    exit 0
+fi ;
 
 #=================================================
 # CHECK ROOT
