@@ -47,6 +47,54 @@ deb_nrpe=/etc/nagios/nrpe.d/
 test ! -e "$deb_plugin" || echo "This path already contains a folder" exit
 test ! -e "$deb_nrpe" || echo "This path already contains a folder" exit
 
+deb_conf=$(echo
+'################################################################################
+#
+# nrpe command configuration file
+#
+# COMMAND DEFINITIONS
+# Syntax:
+#       command[<command_name>]=<command_line>
+#
+command[service]=/usr/lib/nagios/plugins/check_service -o linux -t "systemctl list-units --state=failed"
+command[users]=/usr/lib/nagios/plugins/check_users -w 5 -c 10
+command[load]=/usr/lib/nagios/plugins/check_load -w 15,10,5 -c 30,25,20
+command[check_load]=/usr/lib/nagios/plugins/check_load -w 15,10,5 -c 30,25,20
+command[swap]=/usr/lib/nagios/plugins/check_swap -w 20% -c 10%
+command[root_disk]=/usr/lib/nagios/plugins/check_disk -w 20% -c 10% -p / -m
+command[usr_disk]=/usr/lib/nagios/plugins/check_disk -w 20% -c 10% -p /usr -m
+command[var_disk]=/usr/lib/nagios/plugins/check_disk -w 20% -c 10% -p /var -m
+command[zombie_procs]=/usr/lib/nagios/plugins/check_procs -w 5 -c 10 -s Z
+command[total_procs]=/usr/lib/nagios/plugins/check_procs -w 190 -c 200
+command[proc_named]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C named
+command[proc_crond]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:5 -C cron
+command[proc_syslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C syslog-ng
+command[proc_rsyslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd' > $deb_nrpe/commands.cfg)
+
+rhel_conf=$(echo
+'################################################################################
+#
+# nrpe command configuration file
+#
+# COMMAND DEFINITIONS
+# Syntax:
+#       command[<command_name>]=<command_line>
+#
+command[service]=/usr/lib/nagios/plugins/check_service -o linux -t "systemctl list-units --state=failed"
+command[users]=/usr/lib64/nagios/plugins/check_users -w 5 -c 10
+command[load]=/usr/lib64/nagios/plugins/check_load -w 15,10,5 -c 30,25,20
+command[check_load]=/usr/lib64/nagios/plugins/check_load -w 15,10,5 -c 30,25,20
+command[swap]=/usr/lib64/nagios/plugins/check_swap -w 20% -c 10%
+command[root_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p / -m
+command[usr_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /usr -m
+command[var_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /var -m
+command[zombie_procs]=/usr/lib64/nagios/plugins/check_procs -w 5 -c 10 -s Z
+command[total_procs]=/usr/lib64/nagios/plugins/check_procs -w 190 -c 200
+command[proc_named]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C named
+command[proc_crond]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:5 -C crond
+command[proc_syslogd]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C syslog-ng
+command[proc_rsyslogd]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd' > $rhel_nrpe/commands.cfg)
+
 #==============================================
 # FIREWALL
 #==============================================
@@ -123,62 +171,30 @@ echo Stop Nagios NRPE Server Service
 fi
 
 #==============================================
-# Install Configuration Debian
+# Install Configuration
 #==============================================
 echo Install Nagios NRPE Configurations
 
-echo
-'################################################################################
-#
-# nrpe command configuration file
-#
-# COMMAND DEFINITIONS
-# Syntax:
-#       command[<command_name>]=<command_line>
-#
-command[service]=/usr/lib/nagios/plugins/check_service -o linux -t "systemctl list-units --state=failed"
-command[users]=/usr/lib/nagios/plugins/check_users -w 5 -c 10
-command[load]=/usr/lib/nagios/plugins/check_load -w 15,10,5 -c 30,25,20
-command[check_load]=/usr/lib/nagios/plugins/check_load -w 15,10,5 -c 30,25,20
-command[swap]=/usr/lib/nagios/plugins/check_swap -w 20% -c 10%
-command[root_disk]=/usr/lib/nagios/plugins/check_disk -w 20% -c 10% -p / -m
-command[usr_disk]=/usr/lib/nagios/plugins/check_disk -w 20% -c 10% -p /usr -m
-command[var_disk]=/usr/lib/nagios/plugins/check_disk -w 20% -c 10% -p /var -m
-command[zombie_procs]=/usr/lib/nagios/plugins/check_procs -w 5 -c 10 -s Z
-command[total_procs]=/usr/lib/nagios/plugins/check_procs -w 190 -c 200
-command[proc_named]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C named
-command[proc_crond]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:5 -C cron
-command[proc_syslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C syslog-ng
-command[proc_rsyslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd' > $deb_nrpe/commands.cfg
+# Check OS & nrpe
 
-#==============================================
-# Install Configuration Centos
-#==============================================
-echo Install Nagios NRPE Configurations
+  if [ $? != 1 ]; then
+     distribution=$(cat /etc/issue | head -n +1 | awk '{print $1}')
 
-echo
-'################################################################################
-#
-# nrpe command configuration file
-#
-# COMMAND DEFINITIONS
-# Syntax:
-#       command[<command_name>]=<command_line>
-#
-command[service]=/usr/lib/nagios/plugins/check_service -o linux -t "systemctl list-units --state=failed"
-command[users]=/usr/lib64/nagios/plugins/check_users -w 5 -c 10
-command[load]=/usr/lib64/nagios/plugins/check_load -w 15,10,5 -c 30,25,20
-command[check_load]=/usr/lib64/nagios/plugins/check_load -w 15,10,5 -c 30,25,20
-command[swap]=/usr/lib64/nagios/plugins/check_swap -w 20% -c 10%
-command[root_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p / -m
-command[usr_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /usr -m
-command[var_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /var -m
-command[zombie_procs]=/usr/lib64/nagios/plugins/check_procs -w 5 -c 10 -s Z
-command[total_procs]=/usr/lib64/nagios/plugins/check_procs -w 190 -c 200
-command[proc_named]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C named
-command[proc_crond]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:5 -C crond
-command[proc_syslogd]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C syslog-ng
-command[proc_rsyslogd]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd' > $rhel_nrpe/commands.cfg
+    if [ "$distribution" = "Ubuntu" ]; then
+      $deb_conf # Ubuntu / Debian
+    
+    elif [ "$distribution" = "Fedora" ]; then
+      $rhel_conf # Fedora
+    
+    elif [ "$distribution" = "CentOS" ]; then
+      $rhel_conf # OpenSuse / CentOS
+    
+    elif [ "$distribution" = "Debian" ]; then
+      $deb_conf # Ubuntu / Debian
+      
+    fi
+    else
+fi
 
 #==============================================
 # SystemD
