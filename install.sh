@@ -177,31 +177,6 @@ echo "Stop Nagios NRPE Server Service"
 fi
 
 #==============================================
-# Install Configuration
-#==============================================
-echo "Install Nagios NRPE Configurations"
-
-# Check OS & nrpe
-
-  if [ $? != 1 ]; then
-     distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
-
-    if [ "$distribution" = "Ubuntu" ]; then
-      $deb_conf # Ubuntu / Debian
-    
-    elif [ "$distribution" = "Fedora" ]; then
-      $rhel_conf # Fedora
-    
-    elif [ "$distribution" = "CentOS" ]; then
-      $rhel_conf # OpenSuse / CentOS
-    
-    elif [ "$distribution" = "Debian" ]; then
-      $deb_conf # Ubuntu / Debian
-      
-    fi
-fi
-
-#==============================================
 # SystemD
 #==============================================
 echo "Start & Enable Nagios NRPE Server Service"
