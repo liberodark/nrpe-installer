@@ -39,13 +39,13 @@ if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
 
 rhel_plugin=/usr/lib64/nagios/plugins
 rhel_nrpe=/etc/nrpe.d
-test ! -e "$rhel_plugin" || echo "This path already contains a folder" exit
-test ! -e "$rhel_nrpe" || echo "This path already contains a folder" exit
+test ! -e "$rhel_plugin" || echo "This path already contains a folder" && exit
+test ! -e "$rhel_nrpe" || echo "This path already contains a folder" && exit
 
 deb_plugin=/usr/lib/nagios/plugins
 deb_nrpe=/etc/nagios/nrpe.d
-test ! -e "$deb_plugin" || echo "This path already contains a folder" exit
-test ! -e "$deb_nrpe" || echo "This path already contains a folder" exit
+test ! -e "$deb_plugin" || echo "This path already contains a folder" && exit
+test ! -e "$deb_nrpe" || echo "This path already contains a folder" && exit
 
 deb_conf=$(echo
 '################################################################################
@@ -69,7 +69,7 @@ command[total_procs]=/usr/lib/nagios/plugins/check_procs -w 190 -c 200
 command[proc_named]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C named
 command[proc_crond]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:5 -C cron
 command[proc_syslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C syslog-ng
-command[proc_rsyslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd' > $deb_nrpe/commands.cfg)
+command[proc_rsyslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd' > $deb_nrpe/commands.cfg &> /dev/null)
 
 rhel_conf=$(echo
 '################################################################################
@@ -93,7 +93,7 @@ command[total_procs]=/usr/lib64/nagios/plugins/check_procs -w 190 -c 200
 command[proc_named]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C named
 command[proc_crond]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:5 -C crond
 command[proc_syslogd]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C syslog-ng
-command[proc_rsyslogd]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd' > $rhel_nrpe/commands.cfg)
+command[proc_rsyslogd]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd' > $rhel_nrpe/commands.cfg &> /dev/null)
 
 #==============================================
 # FIREWALL
