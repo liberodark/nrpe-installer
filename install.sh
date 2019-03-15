@@ -154,8 +154,6 @@ echo "Install Nagios NRPE Server"
       echo -e $deb_conf > $deb_nrpe/commands.cfg
       
     fi
-    else
-  echo "NRPE is Installed"
 fi
 
 #==============================================
