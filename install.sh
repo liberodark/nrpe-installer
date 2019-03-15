@@ -69,39 +69,32 @@ echo Install Nagios NRPE Server
 
     if [ "$distribution" = "Ubuntu" ]; then
       apt install -y nagios-nrpe-server nagios-plugins-basic # Ubuntu / Debian
+      wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
+      mv check_service $deb_plugin
+      chmod+x $deb_plugin/check_service
     
     elif [ "$distribution" = "Fedora" ]; then
       dnf install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs # Fedora
+      wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
+      mv check_service $rhel_plugin
+      chmod+x $rhel_plugin/check_service
     
     elif [ "$distribution" = "CentOS" ]; then
       yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs # OpenSuse / CentOS
+      wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
+      mv check_service $rhel_plugin
+      chmod+x $rhel_plugin/check_service
     
     elif [ "$distribution" = "Debian" ]; then
       apt install -y nagios-nrpe-server nagios-plugins-basic # Ubuntu / Debian
+      wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
+      mv check_service $deb_plugin
+      chmod+x $deb_plugin/check_service
       
     fi
     else
   echo "nrpe is Installed"
 fi
-
-#apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null
-#yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs &> /dev/null
-
-wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
-mv check_service $deb_plugin
-chmod+x $deb_plugin/check_service
-
-#==============================================
-# INSTALL NRPE Centos
-#==============================================
-#echo Install Nagios NRPE Server
-
-#apt install -y nagios-nrpe-server nagios-plugins-basic &> /dev/null
-#yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs &> /dev/null
-
-wget -o check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
-mv check_service $rhel_plugin
-chmod+x $rhel_plugin/check_service
 
 #==============================================
 # SystemD
@@ -128,9 +121,6 @@ echo Stop Nagios NRPE Server Service
     fi
     else
 fi
-
-#systemctl stop nagios-nrpe-server &> /dev/null
-#systemctl stop nrpe &> /dev/null
 
 #==============================================
 # Install Configuration Debian
