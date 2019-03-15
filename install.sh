@@ -214,4 +214,3 @@ echo "Start & Enable Nagios NRPE Server Service"
       
     fi
 fi
-exit
