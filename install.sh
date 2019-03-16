@@ -163,6 +163,8 @@ fi
 
 sed -i "s@allowed_hosts=127.0.0.1,::1@allowed_hosts=127.0.0.1,${ip}@g" $nagios_path
 
+sed -i "s@allowed_hosts=127.0.0.1@allowed_hosts=127.0.0.1,${ip}@g" $nagios_path
+
 #==============================================
 # SystemD
 #==============================================
