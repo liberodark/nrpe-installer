@@ -43,7 +43,6 @@ read ip
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST AND VAR
 #=================================================
-
 distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 
 nagios_path=/etc/nagios/nrpe.cfg
@@ -128,7 +127,6 @@ echo "Install Nagios NRPE Server"
       mv check_service $deb_plugin
       chmod +x $deb_plugin/check_service
       echo -e $deb_conf > $deb_nrpe/commands.cfg
-      rp = "allowed_hosts=127.0.0.1"
     
     elif [[ "$distribution" =~ .Fedora ]]; then
       dnf install -y epel-release &> /dev/null
@@ -138,7 +136,6 @@ echo "Install Nagios NRPE Server"
       mv check_service $rhel_plugin
       chmod +x $rhel_plugin/check_service
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
-      rp = "allowed_hosts=127.0.0.1,::1"
       
     
     elif [[ "$distribution" =~ .CentOS ]]; then
@@ -149,7 +146,6 @@ echo "Install Nagios NRPE Server"
       mv check_service $rhel_plugin
       chmod +x $rhel_plugin/check_service
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
-      rp = "allowed_hosts=127.0.0.1,::1"
       
     
     elif [[ "$distribution" =~ .Debian ]]; then
@@ -158,7 +154,6 @@ echo "Install Nagios NRPE Server"
       mv check_service $deb_plugin
       chmod +x $deb_plugin/check_service
       echo -e $deb_conf > $deb_nrpe/commands.cfg
-      rp = "allowed_hosts=127.0.0.1"
       
     fi
 fi
@@ -167,7 +162,14 @@ fi
 # ADD IP IN NAGIOS_PATH
 #==============================================
 
-sed -i "s@${rp}@allowed_hosts=127.0.0.1,${ip}@g" $nagios_path
+if [[ -e $deb_nrpe/commands.cfg ]]; then
+  rp=$(grep "allowed_hosts=127.0.0.1" $deb_nrpe/commands.cfg)
+  sed -i "s@${rp}*@allowed_hosts=127.0.0.1,${ip}@g" $deb_nrpe/commands.cfg
+elif [[ -e $rhel_nrpe/commands.cfg ]]; then
+  rp=$(grep "allowed_hosts=127.0.0.1" $rhel_nrpe/commands.cfg)
+  sed -i "s@${rp}*@allowed_hosts=127.0.0.1,${ip}@g" $rhel_nrpe/commands.cfg
+fi
+
 
 #==============================================
 # SystemD
