@@ -9,7 +9,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.3.7"
+  version="0.3.8"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -161,13 +161,8 @@ fi
 # ADD IP IN NAGIOS_PATH
 #==============================================
 
-if [[ -e $deb_nrpe/commands.cfg ]]; then
-  rp=$(grep "allowed_hosts=127.0.0.1" $deb_nrpe/commands.cfg)
-  sed -i "s@${rp}*@allowed_hosts=127.0.0.1,${ip}@g" $deb_nrpe/commands.cfg
-elif [[ -e $rhel_nrpe/commands.cfg ]]; then
-  rp=$(grep "allowed_hosts=127.0.0.1" $rhel_nrpe/commands.cfg)
-  sed -i "s@${rp}*@allowed_hosts=127.0.0.1,${ip}@g" $rhel_nrpe/commands.cfg
-fi
+rp=$(grep "allowed_hosts=127.0.0.1" $nagios_path)
+sed -i "s@${rp}*@allowed_hosts=127.0.0.1,${ip}@g" $nagios_path
 
 #==============================================
 # SystemD
