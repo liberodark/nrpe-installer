@@ -14,4 +14,4 @@ wget -Nnv https://raw.githubusercontent.com/liberodark/nrpe-installer/master/ins
 - Debian 9
 - Ubuntu 18.04
 - Centos 7
-- Fedora 20
+- Fedora 29
