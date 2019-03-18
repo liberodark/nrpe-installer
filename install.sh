@@ -10,7 +10,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.4.4"
+  version="0.4.5"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -48,6 +48,8 @@ read ip
 distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 
 nagios_path=/etc/nagios/nrpe.cfg
+
+plugin=https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh
 
 port=5666
 
@@ -121,16 +123,14 @@ echo "Install Nagios NRPE Server"
 
     if [[ "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
       apt install -y nagios-nrpe-server nagios-plugins-basic ufw &> /dev/null
-      wget -O check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh &> /dev/null
+      wget -O check_service $plugin &> /dev/null
       mv check_service $deb_plugin
       chmod +x $deb_plugin/check_service
       echo -e $deb_conf > $deb_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .Fedora || "$distribution" = Fedora ]]; then
-      #dnf install -y epel-release &> /dev/null
-      #dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm &> /dev/null
       dnf install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs firewalld &> /dev/null
-      wget -O check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh &> /dev/null
+      wget -O check_service $plugin &> /dev/null
       mv check_service $rhel_plugin
       chmod +x $rhel_plugin/check_service
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
@@ -139,14 +139,14 @@ echo "Install Nagios NRPE Server"
       yum install -y epel-release &> /dev/null
       yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm &> /dev/null
       yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs firewalld &> /dev/null
-      wget -O check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh &> /dev/null
+      wget -O check_service $plugin &> /dev/null
       mv check_service $rhel_plugin
       chmod +x $rhel_plugin/check_service
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
       apt install -y nagios-nrpe-server nagios-plugins-basic ufw &> /dev/null
-      wget -O check_service https://raw.githubusercontent.com/liberodark/nagios-plugins/master/check_service.sh &> /dev/null
+      wget -O check_service $$plugin &> /dev/null
       mv check_service $deb_plugin
       chmod +x $deb_plugin/check_service
       echo -e $deb_conf > $deb_nrpe/commands.cfg
