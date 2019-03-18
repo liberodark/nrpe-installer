@@ -110,7 +110,7 @@ command[proc_rsyslogd]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C rsy
 #==============================================
 echo "Open Port NRPE Server"
 
-iptables -A INPUT -p tcp -m tcp --dport 5666 -j ACCEPT
+/sbin/iptables -A INPUT -p tcp --dport 5666 -j ACCEPT
 
 #==============================================
 # INSTALL NRPE Debian
