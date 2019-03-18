@@ -10,7 +10,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.4.2"
+  version="0.4.3"
 
   echo "Welcome on NRPE Install Script $version"
 
