@@ -1,0 +1,29 @@
+
+module nrpe 1.0;
+
+require {
+	type nrpe_t;
+	type systemd_systemctl_exec_t;
+	type init_t;
+	type system_dbusd_t;
+	class unix_stream_socket connectto;
+	class dbus send_msg;
+	class system status;
+	class file { execute execute_no_trans getattr open read };
+}
+
+#============= init_t ==============
+allow init_t nrpe_t:dbus send_msg;
+
+#============= nrpe_t ==============
+allow nrpe_t init_t:dbus send_msg;
+
+#!!!! This avc is allowed in the current policy
+allow nrpe_t init_t:system status;
+allow nrpe_t system_dbusd_t:dbus send_msg;
+
+#!!!! This avc is allowed in the current policy
+allow nrpe_t system_dbusd_t:unix_stream_socket connectto;
+
+#!!!! This avc is allowed in the current policy
+allow nrpe_t systemd_systemctl_exec_t:file { execute execute_no_trans getattr open read };
