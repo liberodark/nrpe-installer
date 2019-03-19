@@ -141,7 +141,7 @@ echo "Install Nagios NRPE Server"
       yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs firewalld &> /dev/null
       cd $rhel_plugin
       wget $plugin &> /dev/null
-      chmod +x heck_service.sh
+      chmod +x check_service.sh
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
