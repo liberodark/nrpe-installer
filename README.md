@@ -26,6 +26,12 @@ tar -xvf nrpe.tar.gz
 semodule -i nrpe.pp
 ```
 
+## Monitoring Compatibility :
+
+https://www.eyesofnetwork.com/
+
+https://www.centreon.com/
+
 ## Linux Compatibility :
 
 - Debian 9
