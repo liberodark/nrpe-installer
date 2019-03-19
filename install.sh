@@ -10,7 +10,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.4.7"
+  version="0.4.8"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -71,7 +71,7 @@ deb_conf='######################################################################
 # Syntax:\n
 #       command[<command_name>]=<command_line>\n
 #\n
-command[service]=/usr/lib/nagios/plugins/check_service -o linux -t "systemctl list-units --state=failed"\n
+command[service]=/usr/lib/nagios/plugins/check_service.sh -o linux -t "systemctl list-units --state=failed"\n
 command[users]=/usr/lib/nagios/plugins/check_users -w 5 -c 10\n
 command[load]=/usr/lib/nagios/plugins/check_load -w 15,10,5 -c 30,25,20\n
 command[check_load]=/usr/lib/nagios/plugins/check_load -w 15,10,5 -c 30,25,20\n
@@ -94,7 +94,7 @@ rhel_conf='#####################################################################
 # Syntax:\n
 #       command[<command_name>]=<command_line>\n
 #\n
-command[service]=/usr/lib64/nagios/plugins/check_service -o linux -t "systemctl list-units --state=failed"\n
+command[service]=/usr/lib64/nagios/plugins/check_service.sh -o linux -t "systemctl list-units --state=failed"\n
 command[users]=/usr/lib64/nagios/plugins/check_users -w 5 -c 10\n
 command[load]=/usr/lib64/nagios/plugins/check_load -w 15,10,5 -c 30,25,20\n
 command[check_load]=/usr/lib64/nagios/plugins/check_load -w 15,10,5 -c 30,25,20\n
@@ -123,32 +123,32 @@ echo "Install Nagios NRPE Server"
 
     if [[ "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
       apt install -y nagios-nrpe-server nagios-plugins-basic ufw &> /dev/null
-      wget -O check_service $plugin &> /dev/null
-      mv check_service $deb_plugin
-      chmod +x $deb_plugin/check_service
+      cd $deb_plugin
+      wget $plugin &> /dev/null
+      chmod +x check_service.sh
       echo -e $deb_conf > $deb_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .Fedora || "$distribution" = Fedora ]]; then
       dnf install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs firewalld &> /dev/null
-      wget -O check_service $plugin &> /dev/null
-      mv check_service $rhel_plugin
-      chmod +x $rhel_plugin/check_service
+      cd $rhel_plugin
+      wget $plugin &> /dev/null
+      chmod +x check_service.sh
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .CentOS || "$distribution" = CentOS ]]; then
       yum install -y epel-release &> /dev/null
       #yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm &> /dev/null
       yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs firewalld &> /dev/null
-      wget -O check_service $plugin &> /dev/null
-      mv check_service $rhel_plugin
-      chmod +x $rhel_plugin/check_service
+      cd $rhel_plugin
+      wget $plugin &> /dev/null
+      chmod +x heck_service.sh
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
       apt install -y nagios-nrpe-server nagios-plugins-basic ufw &> /dev/null
-      wget -O check_service $$plugin &> /dev/null
-      mv check_service $deb_plugin
-      chmod +x $deb_plugin/check_service
+      cd $deb_plugin
+      wget $$plugin &> /dev/null
+      chmod +x check_service.sh
       echo -e $deb_conf > $deb_nrpe/commands.cfg
       
     fi
