@@ -18,6 +18,14 @@ grep denied /var/log/audit/audit.log | audit2allow -M nrpe
 semodule -i nrpe.pp
 ```
 
+Or use nrpe from github :
+
+```bash
+wget -O nrpe.tar.gz https://github.com/liberodark/nrpe-installer/releases/download/1.0/nrpe.tar.gz
+tar -xvf nrpe.tar.gz
+semodule -i nrpe.pp
+```
+
 ## Linux Compatibility :
 
 - Debian 9
