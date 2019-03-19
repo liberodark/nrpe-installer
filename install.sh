@@ -10,7 +10,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.4.8"
+  version="0.4.9"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -196,30 +196,6 @@ fi
 #==============================================
 # SystemD
 #==============================================
-echo "Stop Nagios NRPE Server Service"
-
-# Check OS & nrpe
-
-  if [ $? != 1 ]; then
-
-    if [[ "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
-      systemctl stop nagios-nrpe-server # Ubuntu / Debian
-    
-    elif [[ "$distribution" =~ .Fedora || "$distribution" = Fedora ]]; then
-      systemctl stop nrpe # Fedora
-    
-    elif [[ "$distribution" =~ .CentOS || "$distribution" = CentOS ]]; then
-      systemctl stop nrpe # OpenSuse / CentOS
-    
-    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
-      systemctl stop nagios-nrpe-server # Ubuntu / Debian
-      
-    fi
-fi
-
-#==============================================
-# SystemD
-#==============================================
 echo "Start & Enable Nagios NRPE Server Service"
 
 # Check OS & nrpe
@@ -228,19 +204,19 @@ echo "Start & Enable Nagios NRPE Server Service"
 
     if [[ "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
       systemctl enable nagios-nrpe-server &> /dev/null
-      systemctl start nagios-nrpe-server &> /dev/null
+      systemctl restart nagios-nrpe-server &> /dev/null
     
     elif [[ "$distribution" =~ .Fedora || "$distribution" = Fedora ]]; then
-      systemctl start nrpe &> /dev/null
       systemctl enable nrpe &> /dev/null
+      systemctl restart nrpe &> /dev/null
     
     elif [[ "$distribution" =~ .CentOS || "$distribution" = CentOS ]]; then
-      systemctl start nrpe &> /dev/null
       systemctl enable nrpe &> /dev/null
+      systemctl restart nrpe &> /dev/null
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
       systemctl enable nagios-nrpe-server &> /dev/null
-      systemctl start nagios-nrpe-server &> /dev/null
+      systemctl restart nagios-nrpe-server &> /dev/null
       
     fi
 fi
