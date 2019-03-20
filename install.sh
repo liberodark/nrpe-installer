@@ -10,7 +10,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.4.9"
+  version="0.5.0"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -49,7 +49,9 @@ distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 
 nagios_path=/etc/nagios/nrpe.cfg
 
-plugin=https://raw.githubusercontent.com/jonschipp/nagios-plugins/master/check_service.sh
+plugin1=https://raw.githubusercontent.com/jonschipp/nagios-plugins/master/check_service.sh
+plugin2=https://raw.githubusercontent.com/jonschipp/nagios-plugins/master/check_memory.sh
+plugin3=https://raw.githubusercontent.com/June-Wang/NagiosPlugins/master/check_cpu_utilization.sh
 
 port=5666
 
@@ -122,33 +124,33 @@ echo "Install Nagios NRPE Server"
   if [ $? != 0 ]; then
 
     if [[ "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
-      apt install -y nagios-nrpe-server nagios-plugins-basic ufw &> /dev/null
+      apt install -y nagios-nrpe-server nagios-plugins-basic ufw bc &> /dev/null
       cd $deb_plugin
-      wget $plugin &> /dev/null
-      chmod +x check_service.sh
+      wget $plugin1 && wget $plugin2 && wget $plugin3 &> /dev/null
+      chmod +x check_service.sh && chmod +x check_memory.sh && chmod +x check_cpu_utilization.sh 
       echo -e $deb_conf > $deb_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .Fedora || "$distribution" = Fedora ]]; then
-      dnf install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs firewalld &> /dev/null
+      dnf install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs firewalld bc &> /dev/null
       cd $rhel_plugin
-      wget $plugin &> /dev/null
-      chmod +x check_service.sh
+      wget $plugin1 && wget $plugin2 && wget $plugin3 &> /dev/null
+      chmod +x check_service.sh && chmod +x check_memory.sh && chmod +x check_cpu_utilization.sh 
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .CentOS || "$distribution" = CentOS ]]; then
       yum install -y epel-release &> /dev/null
       #yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm &> /dev/null
-      yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs firewalld &> /dev/null
+      yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs firewalld bc &> /dev/null
       cd $rhel_plugin
-      wget $plugin &> /dev/null
-      chmod +x check_service.sh
+      wget $plugin1 && wget $plugin2 && wget $plugin3 &> /dev/null
+      chmod +x check_service.sh && chmod +x check_memory.sh && chmod +x check_cpu_utilization.sh 
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
-      apt install -y nagios-nrpe-server nagios-plugins-basic ufw &> /dev/null
+      apt install -y nagios-nrpe-server nagios-plugins-basic ufw bc &> /dev/null
       cd $deb_plugin
-      wget $$plugin &> /dev/null
-      chmod +x check_service.sh
+      wget $plugin1 && wget $plugin2 && wget $plugin3 &> /dev/null
+      chmod +x check_service.sh && chmod +x check_memory.sh && chmod +x check_cpu_utilization.sh 
       echo -e $deb_conf > $deb_nrpe/commands.cfg
       
     fi
