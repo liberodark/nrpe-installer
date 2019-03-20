@@ -50,7 +50,7 @@ distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 nagios_path=/etc/nagios/nrpe.cfg
 
 plugin1=https://raw.githubusercontent.com/jonschipp/nagios-plugins/master/check_service.sh
-plugin2=https://raw.githubusercontent.com/jonschipp/nagios-plugins/master/check_memory.sh
+plugin2=https://raw.githubusercontent.com/June-Wang/NagiosPlugins/master/check_mem.sh
 plugin3=https://raw.githubusercontent.com/June-Wang/NagiosPlugins/master/check_cpu_utilization.sh
 
 port=5666
