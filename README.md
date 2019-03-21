@@ -30,7 +30,7 @@ semodule -i nrpe.pp
 
 ```
 command[service]=/usr/lib64/nagios/plugins/check_service.sh -o linux -t "systemctl list-units --state=failed"
-command[memory]=/usr/lib/nagios/plugins/check_mem.sh -w 70 -c 90
+command[memory]=/usr/lib/nagios/plugins/check_mem.sh -w 70% -c 90%
 command[cpu]=/usr/lib/nagios/plugins/check_cpu_utilization.sh -w 70 -c 90
 command[users]=/usr/lib64/nagios/plugins/check_users -w 5 -c 10
 command[load]=/usr/lib64/nagios/plugins/check_load -w 15,10,5 -c 30,25,20
