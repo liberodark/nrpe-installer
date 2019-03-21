@@ -166,6 +166,7 @@ fi
 
 rp=$(grep "allowed_hosts=127.0.0.1" $nagios_path)
 sed -i "s@${rp}*@allowed_hosts=127.0.0.1,${ip}@g" $nagios_path
+sed -i "s@dont_blame_nrpe=0@dont_blame_nrpe=1@g" $nagios_path
 
 #==============================================
 # FIREWALL
