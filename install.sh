@@ -10,7 +10,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.5.3"
+  version="0.5.4"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -131,14 +131,14 @@ echo "Install Nagios NRPE Server"
       apt install -y nagios-nrpe-server nagios-plugins-basic ufw bc &> /dev/null
       cd $deb_plugin
       wget $plugin1 && wget $plugin2 && wget $plugin3 &> /dev/null
-      chmod +x check_service.sh && chmod +x check_memory.sh && chmod +x check_cpu_utilization.sh 
+      chmod +x check_service.sh && chmod +x check_mem.sh && chmod +x check_cpu_utilization.sh 
       echo -e $deb_conf > $deb_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .Fedora || "$distribution" = Fedora ]]; then
       dnf install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs firewalld bc &> /dev/null
       cd $rhel_plugin
       wget $plugin1 && wget $plugin2 && wget $plugin3 &> /dev/null
-      chmod +x check_service.sh && chmod +x check_memory.sh && chmod +x check_cpu_utilization.sh 
+      chmod +x check_service.sh && chmod +x check_mem.sh && chmod +x check_cpu_utilization.sh 
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .CentOS || "$distribution" = CentOS ]]; then
@@ -147,14 +147,14 @@ echo "Install Nagios NRPE Server"
       yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs firewalld bc &> /dev/null
       cd $rhel_plugin
       wget $plugin1 && wget $plugin2 && wget $plugin3 &> /dev/null
-      chmod +x check_service.sh && chmod +x check_memory.sh && chmod +x check_cpu_utilization.sh 
+      chmod +x check_service.sh && chmod +x check_mem.sh && chmod +x check_cpu_utilization.sh 
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
       apt install -y nagios-nrpe-server nagios-plugins-basic ufw bc &> /dev/null
       cd $deb_plugin
       wget $plugin1 && wget $plugin2 && wget $plugin3 &> /dev/null
-      chmod +x check_service.sh && chmod +x check_memory.sh && chmod +x check_cpu_utilization.sh 
+      chmod +x check_service.sh && chmod +x check_mem.sh && chmod +x check_cpu_utilization.sh 
       echo -e $deb_conf > $deb_nrpe/commands.cfg
       
     fi
