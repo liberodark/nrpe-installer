@@ -57,7 +57,7 @@ https://www.op5.com/
 
 ## Linux Compatibility :
 
-- Debian 9
-- Ubuntu 18.04
+- Debian Not supported
+- Ubuntu Not supported
 - Centos 7
 - Fedora 29
