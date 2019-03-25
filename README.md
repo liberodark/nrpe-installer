@@ -29,22 +29,22 @@ semodule -i nrpe.pp
 ## Plugins Configuration :
 
 ```
-command[service]=/usr/lib64/nagios/plugins/check_service.sh -o linux -t "systemctl list-units --state=failed"
+command[service]=/usr/lib/nagios/plugins/check_service.sh -o linux -t "systemctl list-units --state=failed"
 command[memory]=/usr/lib/nagios/plugins/check_mem.sh -w 70% -c 90%
 command[cpu]=/usr/lib/nagios/plugins/check_cpu_utilization.sh -w 70 -c 90
-command[users]=/usr/lib64/nagios/plugins/check_users -w 5 -c 10
-command[load]=/usr/lib64/nagios/plugins/check_load -w 15,10,5 -c 30,25,20
-command[check_load]=/usr/lib64/nagios/plugins/check_load -w 15,10,5 -c 30,25,20
-command[swap]=/usr/lib64/nagios/plugins/check_swap -w 20% -c 10%
-command[root_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p / -m
-command[usr_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /usr -m
-command[var_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /var -m
-command[zombie_procs]=/usr/lib64/nagios/plugins/check_procs -w 5 -c 10 -s Z
-command[total_procs]=/usr/lib64/nagios/plugins/check_procs -w 190 -c 200
-command[proc_named]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C named
-command[proc_crond]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:5 -C crond
-command[proc_syslogd]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C syslog-ng
-command[proc_rsyslogd]=/usr/lib64/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd
+command[users]=/usr/lib/nagios/plugins/check_users -w 5 -c 10
+command[load]=/usr/lib/nagios/plugins/check_load -w 15,10,5 -c 30,25,20
+command[check_load]=/usr/lib/nagios/plugins/check_load -w 15,10,5 -c 30,25,20
+command[swap]=/usr/lib/nagios/plugins/check_swap -w 20% -c 10%
+command[root_disk]=/usr/lib/nagios/plugins/check_disk -w 20% -c 10% -p / -m
+command[usr_disk]=/usr/lib/nagios/plugins/check_disk -w 20% -c 10% -p /usr -m
+command[var_disk]=/usr/lib/nagios/plugins/check_disk -w 20% -c 10% -p /var -m
+command[zombie_procs]=/usr/lib/nagios/plugins/check_procs -w 5 -c 10 -s Z
+command[total_procs]=/usr/lib/nagios/plugins/check_procs -w 190 -c 200
+command[proc_named]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C named
+command[proc_crond]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:5 -C crond
+command[proc_syslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C syslog-ng
+command[proc_rsyslogd]=/usr/lib/nagios/plugins/check_procs -w 1: -c 1:2 -C rsyslogd
 ```
 
 ## Monitoring Compatibility :
