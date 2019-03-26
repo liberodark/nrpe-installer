@@ -5,7 +5,7 @@
 # Thanks : frju365
 # License: GNU GPLv3
 
-version="0.5.8"
+version="0.5.9"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -109,13 +109,13 @@ echo "Install Nagios NRPE Server"
   if [ $? != 0 ]; then
 
     if [[ "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
-      apt install -y nagios-nrpe-server nagios-plugins-basic ufw bc &> /dev/null
+      apt install -y nagios-nrpe-server nagios-plugins-basic bc &> /dev/null
       mv $plugin1 $deb_plugin &> /dev/null && mv $plugin2 $deb_plugin &> /dev/null && mv $plugin3 $deb_plugin &> /dev/null
       chmod +x $deb_plugin/check_service.sh && chmod +x $deb_plugin/check_mem.sh && chmod +x $deb_plugin/check_cpu_utilization.sh 
       echo -e $deb_conf > $deb_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .Fedora || "$distribution" = Fedora ]]; then
-      dnf install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs firewalld bc &> /dev/null
+      dnf install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs bc &> /dev/null
       mv $plugin1 $rhel_plugin &> /dev/null && mv $plugin2 $rhel_plugin &> /dev/null && mv $plugin3 $rhel_plugin &> /dev/null
       chmod +x $rhel_plugin/check_service.sh && chmod +x $rhel_plugin/check_mem.sh && chmod +x $rhel_plugin/check_cpu_utilization.sh 
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
@@ -124,7 +124,7 @@ echo "Install Nagios NRPE Server"
       pushd rhel/
       yum localinstall -y nrpe* nagios* &> /dev/null
       popd
-      yum install -y firewalld bc &> /dev/null
+      yum install -y bc &> /dev/null
       mv $plugin1 $rhel_plugin &> /dev/null && mv $plugin2 $rhel_plugin &> /dev/null && mv $plugin3 $rhel_plugin &> /dev/null
       chmod +x $rhel_plugin/check_service.sh && chmod +x $rhel_plugin/check_mem.sh && chmod +x $rhel_plugin/check_cpu_utilization.sh 
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
@@ -133,7 +133,7 @@ echo "Install Nagios NRPE Server"
       pushd deb/
       dpkg --install nagios-nrpe-server* &> /dev/null
       popd
-      apt install -y nagios-plugins-basic ufw bc &> /dev/null
+      apt install -y nagios-plugins-basic bc &> /dev/null
       mv $plugin1 $deb_plugin &> /dev/null && mv $plugin2 $deb_plugin &> /dev/null && mv $plugin3 $deb_plugin &> /dev/null
       chmod +x $deb_plugin/check_service.sh && chmod +x $deb_plugin/check_mem.sh && chmod +x $deb_plugin/check_cpu_utilization.sh 
       echo -e $deb_conf > $deb_nrpe/commands.cfg
@@ -159,24 +159,22 @@ echo "Open Port NRPE Server"
   if [ $? != 1 ]; then
 
     if [[ "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
-      ufw enable
-      ufw allow $port/tcp
+      mkdir -p /etc/iptables/
+      iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
+      iptables-save > /etc/iptables/rules.v4
     
     elif [[ "$distribution" =~ .Fedora || "$distribution" = Fedora ]]; then
-      systemctl enable firewalld
-      systemctl start firewalld
-      firewall-cmd --zone=public --add-port=$port/tcp --permanent &> /dev/nul
-      firewall-cmd --reload &> /dev/null
+      iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
+      iptables-save > /etc/sysconfig/iptables
     
     elif [[ "$distribution" =~ .CentOS || "$distribution" = CentOS ]]; then
-      systemctl enable firewalld
-      systemctl start firewalld
-      firewall-cmd --zone=public --add-port=$port/tcp --permanent &> /dev/nul
-      firewall-cmd --reload &> /dev/null
+      iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
+      iptables-save > /etc/sysconfig/iptables
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
-      ufw enable
-      ufw allow $port/tcp
+      mkdir -p /etc/iptables/
+      iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
+      iptables-save > /etc/iptables/rules.v4
       
     fi
 fi
