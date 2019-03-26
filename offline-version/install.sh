@@ -5,7 +5,7 @@
 # Thanks : frju365
 # License: GNU GPLv3
 
-version="0.5.9"
+version="0.6.2"
 
 echo "Welcome on NRPE Install Script $version"
 
