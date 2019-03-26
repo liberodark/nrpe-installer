@@ -10,7 +10,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.6.1"
+  version="0.6.2"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -180,7 +180,7 @@ echo "Open Port NRPE Server"
   if [ $? != 1 ]; then
 
     if [[ "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
-      apt-get install -y iptables-persistent &> /dev/null
+      apt-get install -y iptables-persistent
       iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
       iptables-save > /etc/iptables/rules.v4
     
@@ -193,7 +193,7 @@ echo "Open Port NRPE Server"
       iptables-save > /etc/sysconfig/iptables
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
-      apt-get install -y iptables-persistent &> /dev/null
+      apt-get install -y iptables-persistent
       iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
       iptables-save > /etc/iptables/rules.v4
       
