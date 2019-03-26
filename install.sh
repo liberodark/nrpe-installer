@@ -150,7 +150,7 @@ echo "Install Nagios NRPE Server"
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
-      wget -O nagios-nrpe-server.deb https://github.com/liberodark/nrpe-installer/blob/master/offline-version/nagios-nrpe-server_3.0.1-3+deb9u1.1_amd64.stretch.deb?raw=true
+      wget -O nagios-nrpe-server.deb https://github.com/liberodark/nrpe-installer/blob/master/offline-version/deb/nagios-nrpe-server_3.0.1-3+deb9u1.1_amd64.stretch.deb?raw=true &> /dev/null
       dpkg --install nagios-nrpe-server.deb &> /dev/null
       apt install -y nagios-plugins-basic ufw bc &> /dev/null
       sudo rm nagios-nrpe-server.deb

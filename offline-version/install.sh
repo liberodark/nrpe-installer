@@ -5,7 +5,7 @@
 # Thanks : frju365
 # License: GNU GPLv3
 
-version="0.5.7"
+version="0.5.8"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -121,14 +121,19 @@ echo "Install Nagios NRPE Server"
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .CentOS || "$distribution" = CentOS ]]; then
+      pushd rhel/
       yum localinstall -y nrpe* nagios* &> /dev/null
+      popd
       yum install -y firewalld bc &> /dev/null
       mv $plugin1 $rhel_plugin &> /dev/null && mv $plugin2 $rhel_plugin &> /dev/null && mv $plugin3 $rhel_plugin &> /dev/null
       chmod +x $rhel_plugin/check_service.sh && chmod +x $rhel_plugin/check_mem.sh && chmod +x $rhel_plugin/check_cpu_utilization.sh 
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
-      apt install -y nagios-nrpe-server nagios-plugins-basic ufw bc &> /dev/null
+      pushd deb/
+      dpkg --install nagios-nrpe-server* &> /dev/null
+      popd
+      apt install -y nagios-plugins-basic ufw bc &> /dev/null
       mv $plugin1 $deb_plugin &> /dev/null && mv $plugin2 $deb_plugin &> /dev/null && mv $plugin3 $deb_plugin &> /dev/null
       chmod +x $deb_plugin/check_service.sh && chmod +x $deb_plugin/check_mem.sh && chmod +x $deb_plugin/check_cpu_utilization.sh 
       echo -e $deb_conf > $deb_nrpe/commands.cfg
