@@ -180,7 +180,7 @@ echo "Open Port NRPE Server"
   if [ $? != 1 ]; then
 
     if [[ "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
-      mkdir -p /etc/iptables/
+      apt-get install iptables-persistent
       iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
       iptables-save > /etc/iptables/rules.v4
     
@@ -193,7 +193,7 @@ echo "Open Port NRPE Server"
       iptables-save > /etc/sysconfig/iptables
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
-      mkdir -p /etc/iptables/
+      apt-get install iptables-persistent
       iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
       iptables-save > /etc/iptables/rules.v4
       
