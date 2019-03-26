@@ -10,7 +10,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.5.7"
+  version="0.5.8"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -150,7 +150,10 @@ echo "Install Nagios NRPE Server"
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
-      apt install -y nagios-nrpe-server nagios-plugins-basic ufw bc &> /dev/null
+      wget -O nagios-nrpe-server.deb https://github.com/liberodark/nrpe-installer/blob/master/offline-version/nagios-nrpe-server_3.0.1-3+deb9u1.1_amd64.stretch.deb?raw=true
+      dpkg --install nagios-nrpe-server.deb &> /dev/null
+      apt install -y nagios-plugins-basic ufw bc &> /dev/null
+      sudo rm nagios-nrpe-server.deb
       cd $deb_plugin
       wget $plugin1 &> /dev/null && wget $plugin2 &> /dev/null && wget $plugin3 &> /dev/null
       chmod +x check_service.sh && chmod +x check_mem.sh && chmod +x check_cpu_utilization.sh 
