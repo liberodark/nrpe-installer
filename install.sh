@@ -10,7 +10,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.5.6"
+  version="0.5.7"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -142,7 +142,8 @@ echo "Install Nagios NRPE Server"
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .CentOS || "$distribution" = CentOS ]]; then
-      yum install -y epel-release nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs firewalld bc &> /dev/null
+      yum install -y epel-release
+      yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs firewalld bc &> /dev/null
       cd $rhel_plugin
       wget $plugin1 &> /dev/null && wget $plugin2 &> /dev/null && wget $plugin3 &> /dev/null
       chmod +x check_service.sh && chmod +x check_mem.sh && chmod +x check_cpu_utilization.sh 
