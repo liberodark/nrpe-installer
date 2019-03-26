@@ -22,7 +22,7 @@ Or use nrpe from github :
 
 ```bash
 wget -O nrpe.tar.gz https://github.com/liberodark/nrpe-installer/releases/download/1.0/nrpe.tar.gz
-tar -xvf nrpe.tar.gz && rm nrpe.tar.gz && semodule -i nrpe.pp
+tar -xvf nrpe.tar.gz && sudo rm nrpe.tar.gz && semodule -i nrpe.pp
 ```
 
 ## Plugins Configuration :
