@@ -142,7 +142,7 @@ echo "Install Nagios NRPE Server"
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .CentOS || "$distribution" = CentOS ]]; then
-      yum install -y epel-release
+      yum install -y epel-release &> /dev/null
       yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs firewalld bc &> /dev/null
       cd $rhel_plugin
       wget $plugin1 &> /dev/null && wget $plugin2 &> /dev/null && wget $plugin3 &> /dev/null
