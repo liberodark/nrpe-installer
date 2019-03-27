@@ -5,7 +5,7 @@
 # Thanks : frju365
 # License: GNU GPLv3
 
-version="0.6.3"
+version="0.6.4"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -115,16 +115,17 @@ echo "Install Nagios NRPE Server"
       echo -e $deb_conf > $deb_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .Fedora || "$distribution" = Fedora ]]; then
-      dnf install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs bc net-tools &> /dev/null
+      pushd rhel/
+      yum localinstall -y nrpe* nagios* bc* &> /dev/null
+      popd
       mv $plugin1 $rhel_plugin &> /dev/null && mv $plugin2 $rhel_plugin &> /dev/null && mv $plugin3 $rhel_plugin &> /dev/null
       chmod +x $rhel_plugin/check_service.sh && chmod +x $rhel_plugin/check_mem.sh && chmod +x $rhel_plugin/check_cpu_utilization.sh 
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .CentOS || "$distribution" = CentOS ]]; then
       pushd rhel/
-      yum localinstall -y nrpe* nagios* &> /dev/null
+      yum localinstall -y nrpe* nagios* bc* &> /dev/null
       popd
-      yum install -y bc net-tools &> /dev/null
       mv $plugin1 $rhel_plugin &> /dev/null && mv $plugin2 $rhel_plugin &> /dev/null && mv $plugin3 $rhel_plugin &> /dev/null
       chmod +x $rhel_plugin/check_service.sh && chmod +x $rhel_plugin/check_mem.sh && chmod +x $rhel_plugin/check_cpu_utilization.sh 
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
@@ -133,7 +134,7 @@ echo "Install Nagios NRPE Server"
       pushd deb/
       dpkg --install nagios-nrpe-server* &> /dev/null
       popd
-      apt install -y nagios-plugins-basic bc net-tools &> /dev/null
+      apt install -y nagios-plugins-basic bc &> /dev/null
       mv $plugin1 $deb_plugin &> /dev/null && mv $plugin2 $deb_plugin &> /dev/null && mv $plugin3 $deb_plugin &> /dev/null
       chmod +x $deb_plugin/check_service.sh && chmod +x $deb_plugin/check_mem.sh && chmod +x $deb_plugin/check_cpu_utilization.sh 
       echo -e $deb_conf > $deb_nrpe/commands.cfg
