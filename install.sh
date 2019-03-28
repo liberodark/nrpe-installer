@@ -94,7 +94,7 @@ echo "Install Nagios NRPE Server"
 
     if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" = Fedora ]]; then
       yum install -y gcc glibc glibc-common openssl openssl-devel perl wget &> /dev/null
-      curl -L https://github.com/liberodark/nrpe-installer/releases/download/0.7.1/nrpe-offline.tar.gz| tar --strip-components=1 -xzv
+      curl -L https://github.com/liberodark/nrpe-installer/releases/download/0.7.1/nrpe-offline.tar.gz| tar --strip-components=1 -xzv &> /dev/null
       tar xzf nrpe.tar.gz &> /dev/null
 
       pushd nrpe-nrpe-3.2.1/
@@ -120,7 +120,7 @@ echo "Install Nagios NRPE Server"
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" = Ubuntu ]]; then
       apt-get update &> /dev/null
       apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev wget bc --force-yes &> /dev/null
-      curl -L https://github.com/liberodark/nrpe-installer/releases/download/0.7.1/nrpe-offline.tar.gz| tar --strip-components=1 -xzv
+      curl -L https://github.com/liberodark/nrpe-installer/releases/download/0.7.1/nrpe-offline.tar.gz| tar --strip-components=1 -xzv &> /dev/null
       tar xzf nrpe.tar.gz &> /dev/null
 
       pushd nrpe-nrpe-3.2.1/
