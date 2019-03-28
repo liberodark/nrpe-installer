@@ -5,7 +5,7 @@
 # Thanks : frju365
 # License: GNU GPLv3
 
-version="0.6.4"
+version="0.6.5"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -27,6 +27,8 @@ read ip
 #=================================================
 
 distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
+distribution_old=$(cat /etc/issue | head -n +1 | awk '{print $1}')
+
 
 nagios_path=/etc/nagios/nrpe.cfg
 
@@ -130,11 +132,23 @@ echo "Install Nagios NRPE Server"
       chmod +x $rhel_plugin/check_service.sh && chmod +x $rhel_plugin/check_mem.sh && chmod +x $rhel_plugin/check_cpu_utilization.sh 
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
-    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
-      pushd deb/
-      dpkg --install nagios-nrpe-server* &> /dev/null
-      popd
-      apt install -y nagios-plugins-basic bc &> /dev/null
+    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution_old" =~ .Debian ]]; then
+      apt-get update
+      apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev wget bc
+      tar xzf nrpe.tar.gz
+      cd nrpe-nrpe-3.2.1/
+      ./configure --enable-command-args
+      make all
+      make install-groups-users
+      make install
+      make install-config
+      make install-init
+      update-rc.d nrpe defaults # 7.x
+      systemctl enable nrpe.service # 8.x / 9.x
+      #pushd deb/
+      #dpkg --install nagios-nrpe-server* &> /dev/null
+      #popd
+      #apt install -y nagios-plugins-basic bc &> /dev/null
       mv $plugin1 $deb_plugin &> /dev/null && mv $plugin2 $deb_plugin &> /dev/null && mv $plugin3 $deb_plugin &> /dev/null
       chmod +x $deb_plugin/check_service.sh && chmod +x $deb_plugin/check_mem.sh && chmod +x $deb_plugin/check_cpu_utilization.sh 
       echo -e $deb_conf > $deb_nrpe/commands.cfg
@@ -202,6 +216,7 @@ echo "Start & Enable Nagios NRPE Server Service"
       systemctl restart nrpe &> /dev/null
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
+      service nrpe start &> /dev/null
       systemctl enable nagios-nrpe-server &> /dev/null
       systemctl restart nagios-nrpe-server &> /dev/null
       
