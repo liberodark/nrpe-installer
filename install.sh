@@ -10,7 +10,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.7.1"
+  version="0.7.2"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -96,7 +96,7 @@ echo "Install Nagios NRPE Server"
       yum install -y gcc glibc glibc-common openssl openssl-devel perl wget &> /dev/null
       wget https://github.com/liberodark/nrpe-installer/archive/master.zip
       unzip master.zip
-      cd nrpe-installer*
+      cd  nrpe-installer-master/
       tar xzf nrpe.tar.gz &> /dev/null
 
       pushd nrpe-nrpe-3.2.1/
@@ -124,7 +124,7 @@ echo "Install Nagios NRPE Server"
       apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev wget bc --force-yes &> /dev/null
       wget https://github.com/liberodark/nrpe-installer/archive/master.zip
       unzip master.zip
-      cd nrpe-installer*
+      cd  nrpe-installer-master/
       tar xzf nrpe.tar.gz &> /dev/null
 
       pushd nrpe-nrpe-3.2.1/
