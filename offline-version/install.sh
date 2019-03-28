@@ -134,7 +134,7 @@ echo "Install Nagios NRPE Server"
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution_old" =~ .Debian ]]; then
       apt-get update
-      apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev wget bc
+      apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev wget bc --force-yes
       tar xzf nrpe.tar.gz
       cd nrpe-nrpe-3.2.1/
       ./configure --enable-command-args
