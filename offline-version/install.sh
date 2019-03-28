@@ -154,9 +154,11 @@ echo "Install Nagios NRPE Server"
       #apt install -y nagios-plugins-basic bc &> /dev/null
       pushd plugins/
       mv * $deb_plugin &> /dev/null
-      chmod +x $deb_plugin/check_service.sh && chmod +x $deb_plugin/check_mem.sh && chmod +x $deb_plugin/check_cpu_utilization.sh 
-      echo -e $deb_conf > $deb_nrpe/commands.cfg
       popd
+      pushd $deb_plugin
+      chmod +x * && chown nagios:nagios *
+      popd
+      echo -e $deb_conf > $deb_nrpe/commands.cfg
       
     fi
 fi
