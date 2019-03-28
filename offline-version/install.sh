@@ -5,7 +5,7 @@
 # Thanks : frju365
 # License: GNU GPLv3
 
-version="0.6.6"
+version="0.6.7"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -45,7 +45,7 @@ deb_nrpe=/etc/nagios/nrpe.d
 test ! -e "$deb_plugin" || echo "This path already contains a folder" | exit
 test ! -e "$deb_nrpe" || echo "This path already contains a folder" | exit
 
-deb_conf='################################################################################\n 
+plugins_conf='################################################################################\n 
 #\n
 # nrpe command configuration file\n
 #\n
@@ -70,31 +70,6 @@ command[proc_crond]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C
 command[proc_syslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
 command[proc_rsyslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$'
 
-rhel_conf='################################################################################\n
-#\n
-# nrpe command configuration file\n
-#\n
-# COMMAND DEFINITIONS\n
-# Syntax:\n
-#       command[<command_name>]=<command_line>\n
-#\n
-command[service]=/usr/lib64/nagios/plugins/check_service.sh -o linux -t "systemctl list-units --state=failed"\n
-command[memory]=/usr/lib64/nagios/plugins/check_mem.sh -w $ARG1$ -c $ARG2$\n
-command[cpu]=/usr/lib64/nagios/plugins/check_cpu_utilization.sh -w $ARG1$ -c $ARG2$\n
-command[users]=/usr/lib64/nagios/plugins/check_users -w $ARG1$ -c $ARG2$\n
-command[load]=/usr/lib64/nagios/plugins/check_load -w $ARG1$ -c $ARG2$\n
-command[check_load]=/usr/lib64/nagios/plugins/check_load -w $ARG1$ -c $ARG2$\n
-command[swap]=/usr/lib64/nagios/plugins/check_swap -w $ARG1$ -c $ARG2$\n
-command[root_disk]=/usr/lib64/nagios/plugins/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
-command[usr_disk]=/usr/lib64/nagios/plugins/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
-command[var_disk]=/usr/lib64/nagios/plugins/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
-command[zombie_procs]=/usr/lib64/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -s Z\n
-command[total_procs]=/usr/lib64/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$\n
-command[proc_named]=/usr/lib64/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
-command[proc_crond]=/usr/lib64/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
-command[proc_syslogd]=/usr/lib64/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
-command[proc_rsyslogd]=/usr/lib64/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$'
-
 
 #==============================================
 # INSTALL NRPE Debian
@@ -107,21 +82,7 @@ echo "Install Nagios NRPE Server"
 
   if [ $? != 0 ]; then
 
-    if [[ "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
-      apt install -y nagios-nrpe-server nagios-plugins-basic bc net-tools &> /dev/null
-      mv $plugin1 $deb_plugin &> /dev/null && mv $plugin2 $deb_plugin &> /dev/null && mv $plugin3 $deb_plugin &> /dev/null
-      chmod +x $deb_plugin/check_service.sh && chmod +x $deb_plugin/check_mem.sh && chmod +x $deb_plugin/check_cpu_utilization.sh 
-      echo -e $deb_conf > $deb_nrpe/commands.cfg
-    
-    elif [[ "$distribution" =~ .Fedora || "$distribution" = Fedora ]]; then
-      pushd rhel/
-      yum localinstall -y nrpe* nagios* bc* &> /dev/null
-      popd
-      mv $plugin1 $rhel_plugin &> /dev/null && mv $plugin2 $rhel_plugin &> /dev/null && mv $plugin3 $rhel_plugin &> /dev/null
-      chmod +x $rhel_plugin/check_service.sh && chmod +x $rhel_plugin/check_mem.sh && chmod +x $rhel_plugin/check_cpu_utilization.sh 
-      echo -e $rhel_conf > $rhel_nrpe/commands.cfg
-    
-    elif [[ "$distribution" =~ .CentOS || "$distribution" = CentOS ]]; then
+    if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" = Fedora ]]; then
       yum install -y gcc glibc glibc-common openssl openssl-devel perl wget
       tar xzf nrpe.tar.gz
 
@@ -143,16 +104,9 @@ echo "Install Nagios NRPE Server"
       pushd $nrpe_plugin
       chmod +x * && chown nagios:nagios *
       popd
-      echo -e $rhel_conf > $nrpe_conf
-
-      #pushd rhel/
-      #yum localinstall -y nrpe* nagios* bc* &> /dev/null
-      #popd
-      #mv $plugin1 $rhel_plugin &> /dev/null && mv $plugin2 $rhel_plugin &> /dev/null && mv $plugin3 $rhel_plugin &> /dev/null
-      #chmod +x $rhel_plugin/check_service.sh && chmod +x $rhel_plugin/check_mem.sh && chmod +x $rhel_plugin/check_cpu_utilization.sh 
-      
+      echo -e $plugins_conf >> $nrpe_conf 
     
-    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution_old" =~ .Debian ]]; then
+    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" = Ubuntu ]]; then
       apt-get update
       apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev wget bc --force-yes
       tar xzf nrpe.tar.gz
@@ -175,7 +129,7 @@ echo "Install Nagios NRPE Server"
       pushd $nrpe_plugin
       chmod +x * && chown nagios:nagios *
       popd
-      echo -e $deb_conf > $nrpe_conf
+      echo -e $plugins_conf >> $nrpe_conf
       
     fi
 fi
