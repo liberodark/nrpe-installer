@@ -54,6 +54,20 @@ https://www.centreon.com/
 
 https://www.op5.com/
 
+## Debian 6.x / 7.x
+
+Save your source list :
+
+```cp -a /etc/apt/sources.list /etc/apt/sources.list.bak```
+
+For Debian 6.x
+
+```echo "deb http://archive.debian.org/debian/ squeeze main" >> /etc/apt/sources.list```
+
+For Debian 7.x
+
+```echo "deb http://archive.debian.org/debian/ wheezy main" >> /etc/apt/sources.list```
+
 ## Linux Compatibility :
 
 - Debian 9
