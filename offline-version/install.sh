@@ -138,7 +138,7 @@ echo "Install Nagios NRPE Server"
       apt-get update
       apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev wget bc --force-yes
       tar xzf nrpe.tar.gz
-      cd nrpe-nrpe-3.2.1/
+      pushd nrpe-nrpe-3.2.1/
       ./configure --enable-command-args
       make all
       make install-groups-users
@@ -147,13 +147,16 @@ echo "Install Nagios NRPE Server"
       make install-init
       update-rc.d nrpe defaults # 7.x
       systemctl enable nrpe.service # 8.x / 9.x
+      popd
       #pushd deb/
       #dpkg --install nagios-nrpe-server* &> /dev/null
       #popd
       #apt install -y nagios-plugins-basic bc &> /dev/null
+      pushd plugins/
       mv $plugin1 $deb_plugin &> /dev/null && mv $plugin2 $deb_plugin &> /dev/null && mv $plugin3 $deb_plugin &> /dev/null
       chmod +x $deb_plugin/check_service.sh && chmod +x $deb_plugin/check_mem.sh && chmod +x $deb_plugin/check_cpu_utilization.sh 
       echo -e $deb_conf > $deb_nrpe/commands.cfg
+      popd
       
     fi
 fi
