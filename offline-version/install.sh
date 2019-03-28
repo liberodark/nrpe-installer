@@ -5,7 +5,7 @@
 # Thanks : frju365
 # License: GNU GPLv3
 
-version="0.6.9"
+version="0.7.1"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -29,21 +29,12 @@ read ip
 distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 distribution_old=$(cat /etc/issue | head -n +1 | awk '{print $1}')
 
-
-#nagios_path=/etc/nagios/nrpe.cfg
 nrpe_conf=/usr/local/nagios/etc/nrpe.cfg
-
 port=5666
-
-rhel_plugin=/usr/lib64/nagios/plugins
-rhel_nrpe=/etc/nrpe.d
-test ! -e "$rhel_plugin" || echo "This path already contains a folder" | exit
-test ! -e "$rhel_nrpe" || echo "This path already contains a folder" | exit
-
 nrpe_plugin=/usr/local/nagios/libexec/
-deb_nrpe=/etc/nagios/nrpe.d
-test ! -e "$deb_plugin" || echo "This path already contains a folder" | exit
-test ! -e "$deb_nrpe" || echo "This path already contains a folder" | exit
+
+test ! -e "$nrpe_conf" || echo "This path already contains a folder" | exit
+test ! -e "$nrpe_plugin" || echo "This path already contains a folder" | exit
 
 plugins_conf='################################################################################\n 
 #\n
@@ -107,7 +98,7 @@ echo "Install Nagios NRPE Server"
       echo -e $plugins_conf >> $nrpe_conf 
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" = Ubuntu ]]; then
-      apt-get update
+      apt-get update &> /dev/null
       apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev wget bc --force-yes &> /dev/null
       tar xzf nrpe.tar.gz &> /dev/null
 

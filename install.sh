@@ -10,7 +10,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.6.4"
+  version="0.7.1"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -46,26 +46,16 @@ read ip
 #=================================================
 
 distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
+distribution_old=$(cat /etc/issue | head -n +1 | awk '{print $1}')
 
-nagios_path=/etc/nagios/nrpe.cfg
-
-plugin1=https://raw.githubusercontent.com/jonschipp/nagios-plugins/master/check_service.sh
-plugin2=https://raw.githubusercontent.com/June-Wang/NagiosPlugins/master/check_mem.sh
-plugin3=https://raw.githubusercontent.com/June-Wang/NagiosPlugins/master/check_cpu_utilization.sh
-
+nrpe_conf=/usr/local/nagios/etc/nrpe.cfg
 port=5666
+nrpe_plugin=/usr/local/nagios/libexec/
 
-rhel_plugin=/usr/lib64/nagios/plugins
-rhel_nrpe=/etc/nrpe.d
-test ! -e "$rhel_plugin" || echo "This path already contains a folder" | exit
-test ! -e "$rhel_nrpe" || echo "This path already contains a folder" | exit
+test ! -e "$nrpe_conf" || echo "This path already contains a folder" | exit
+test ! -e "$nrpe_plugin" || echo "This path already contains a folder" | exit
 
-deb_plugin=/usr/lib/nagios/plugins
-deb_nrpe=/etc/nagios/nrpe.d
-test ! -e "$deb_plugin" || echo "This path already contains a folder" | exit
-test ! -e "$deb_nrpe" || echo "This path already contains a folder" | exit
-
-deb_conf='################################################################################\n 
+plugins_conf='################################################################################\n 
 #\n
 # nrpe command configuration file\n
 #\n
@@ -73,47 +63,22 @@ deb_conf='######################################################################
 # Syntax:\n
 #       command[<command_name>]=<command_line>\n
 #\n
-command[service]=/usr/lib/nagios/plugins/check_service.sh -o linux -t "systemctl list-units --state=failed"\n
-command[memory]=/usr/lib/nagios/plugins/check_mem.sh -w $ARG1$ -c $ARG2$\n
-command[cpu]=/usr/lib/nagios/plugins/check_cpu_utilization.sh -w $ARG1$ -c $ARG2$\n
-command[users]=/usr/lib/nagios/plugins/check_users -w $ARG1$ -c $ARG2$\n
-command[load]=/usr/lib/nagios/plugins/check_load -w $ARG1$ -c $ARG2$\n
-command[check_load]=/usr/lib/nagios/plugins/check_load -w $ARG1$ -c $ARG2$\n
-command[swap]=/usr/lib/nagios/plugins/check_swap -w $ARG1$ -c $ARG2$\n
-command[root_disk]=/usr/lib/nagios/plugins/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
-command[usr_disk]=/usr/lib/nagios/plugins/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
-command[var_disk]=/usr/lib/nagios/plugins/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
-command[zombie_procs]=/usr/lib/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -s Z\n
-command[total_procs]=/usr/lib/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$\n
-command[proc_named]=/usr/lib/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
-command[proc_crond]=/usr/lib/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
-command[proc_syslogd]=/usr/lib/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
-command[proc_rsyslogd]=/usr/lib/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$'
-
-rhel_conf='################################################################################\n
-#\n
-# nrpe command configuration file\n
-#\n
-# COMMAND DEFINITIONS\n
-# Syntax:\n
-#       command[<command_name>]=<command_line>\n
-#\n
-command[service]=/usr/lib64/nagios/plugins/check_service.sh -o linux -t "systemctl list-units --state=failed"\n
-command[memory]=/usr/lib64/nagios/plugins/check_mem.sh -w $ARG1$ -c $ARG2$\n
-command[cpu]=/usr/lib64/nagios/plugins/check_cpu_utilization.sh -w $ARG1$ -c $ARG2$\n
-command[users]=/usr/lib64/nagios/plugins/check_users -w $ARG1$ -c $ARG2$\n
-command[load]=/usr/lib64/nagios/plugins/check_load -w $ARG1$ -c $ARG2$\n
-command[check_load]=/usr/lib64/nagios/plugins/check_load -w $ARG1$ -c $ARG2$\n
-command[swap]=/usr/lib64/nagios/plugins/check_swap -w $ARG1$ -c $ARG2$\n
-command[root_disk]=/usr/lib64/nagios/plugins/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
-command[usr_disk]=/usr/lib64/nagios/plugins/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
-command[var_disk]=/usr/lib64/nagios/plugins/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
-command[zombie_procs]=/usr/lib64/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -s Z\n
-command[total_procs]=/usr/lib64/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$\n
-command[proc_named]=/usr/lib64/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
-command[proc_crond]=/usr/lib64/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
-command[proc_syslogd]=/usr/lib64/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
-command[proc_rsyslogd]=/usr/lib64/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$'
+command[service]=/usr/local/nagios/libexec/check_service.sh -o linux -t "systemctl list-units --state=failed"\n
+command[memory]=/usr/local/nagios/libexec/check_mem.sh -w $ARG1$ -c $ARG2$\n
+command[cpu]=/usr/local/nagios/libexec/check_cpu_utilization.sh -w $ARG1$ -c $ARG2$\n
+command[users]=/usr/local/nagios/libexec/check_users -w $ARG1$ -c $ARG2$\n
+command[load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$\n
+command[check_load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$\n
+command[swap]=/usr/local/nagios/libexec/check_swap -w $ARG1$ -c $ARG2$\n
+command[disk]=/usr/local/nagios/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
+command[usr_disk]=/usr/local/nagios/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
+command[var_disk]=/usr/local/nagios/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
+command[zombie_procs]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -s Z\n
+command[total_procs]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$\n
+command[proc_named]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
+command[proc_crond]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
+command[proc_syslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
+command[proc_rsyslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$'
 
 
 #==============================================
@@ -127,37 +92,60 @@ echo "Install Nagios NRPE Server"
 
   if [ $? != 0 ]; then
 
-    if [[ "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
-      apt install -y nagios-nrpe-server nagios-plugins-basic bc &> /dev/null
-      cd $deb_plugin
-      wget $plugin1 &> /dev/null && wget $plugin2 &> /dev/null && wget $plugin3 &> /dev/null
-      chmod +x check_service.sh && chmod +x check_mem.sh && chmod +x check_cpu_utilization.sh 
-      echo -e $deb_conf > $deb_nrpe/commands.cfg
+    if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" = Fedora ]]; then
+      yum install -y gcc glibc glibc-common openssl openssl-devel perl wget &> /dev/null
+      wget https://github.com/liberodark/nrpe-installer/archive/master.zip
+      unzip master.zip
+      cd nrpe-installer*
+      tar xzf nrpe.tar.gz &> /dev/null
+
+      pushd nrpe-nrpe-3.2.1/
+      ./configure --enable-command-args &> /dev/null
+      make all &> /dev/null
+      make install-groups-users &> /dev/null
+      make install &> /dev/null
+      make install-config &> /dev/null
+      make install-init &> /dev/null
+      update-rc.d nrpe defaults &> /dev/null # 5.x / 6.x
+      systemctl enable nrpe.service &> /dev/null # 7.x
+      popd
+
+      pushd plugins/
+      mv * $nrpe_plugin &> /dev/null
+      popd
+
+      pushd $nrpe_plugin
+      chmod +x * && chown nagios:nagios *
+      popd
+      echo -e $plugins_conf >> $nrpe_conf 
     
-    elif [[ "$distribution" =~ .Fedora || "$distribution" = Fedora ]]; then
-      dnf install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs bc &> /dev/null
-      cd $rhel_plugin
-      wget $plugin1 &> /dev/null && wget $plugin2 &> /dev/null && wget $plugin3 &> /dev/null
-      chmod +x check_service.sh && chmod +x check_mem.sh && chmod +x check_cpu_utilization.sh 
-      echo -e $rhel_conf > $rhel_nrpe/commands.cfg
-    
-    elif [[ "$distribution" =~ .CentOS || "$distribution" = CentOS ]]; then
-      yum install -y epel-release &> /dev/null
-      yum install -y nrpe nagios-plugins-users nagios-plugins-load nagios-plugins-swap nagios-plugins-disk nagios-plugins-procs bc &> /dev/null
-      cd $rhel_plugin
-      wget $plugin1 &> /dev/null && wget $plugin2 &> /dev/null && wget $plugin3 &> /dev/null
-      chmod +x check_service.sh && chmod +x check_mem.sh && chmod +x check_cpu_utilization.sh 
-      echo -e $rhel_conf > $rhel_nrpe/commands.cfg
-    
-    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
-      wget -O nagios-nrpe-server.deb https://github.com/liberodark/nrpe-installer/blob/master/offline-version/deb/nagios-nrpe-server_3.0.1-3+deb9u1.1_amd64.stretch.deb?raw=true &> /dev/null
-      dpkg --install nagios-nrpe-server.deb &> /dev/null
-      apt install -y nagios-plugins-basic bc &> /dev/null
-      sudo rm nagios-nrpe-server.deb
-      cd $deb_plugin
-      wget $plugin1 &> /dev/null && wget $plugin2 &> /dev/null && wget $plugin3 &> /dev/null
-      chmod +x check_service.sh && chmod +x check_mem.sh && chmod +x check_cpu_utilization.sh 
-      echo -e $deb_conf > $deb_nrpe/commands.cfg
+    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" = Ubuntu ]]; then
+      apt-get update &> /dev/null
+      apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev wget bc --force-yes &> /dev/null
+      wget https://github.com/liberodark/nrpe-installer/archive/master.zip
+      unzip master.zip
+      cd nrpe-installer*
+      tar xzf nrpe.tar.gz &> /dev/null
+
+      pushd nrpe-nrpe-3.2.1/
+      ./configure --enable-command-args &> /dev/null
+      make all &> /dev/null
+      make install-groups-users &> /dev/null
+      make install &> /dev/null
+      make install-config &> /dev/null
+      make install-init &> /dev/null
+      update-rc.d nrpe defaults &> /dev/null # 7.x
+      systemctl enable nrpe.service &> /dev/null # 8.x / 9.x
+      popd
+
+      pushd plugins/
+      mv * $nrpe_plugin &> /dev/null
+      popd
+
+      pushd $nrpe_plugin
+      chmod +x * && chown nagios:nagios *
+      popd
+      echo -e $plugins_conf >> $nrpe_conf
       
     fi
 fi
@@ -166,9 +154,12 @@ fi
 # ADD IP IN NAGIOS_PATH
 #==============================================
 
-rp=$(grep "allowed_hosts=127.0.0.1" $nagios_path)
-sed -i "s@${rp}*@allowed_hosts=127.0.0.1,${ip}@g" $nagios_path
-sed -i "s@dont_blame_nrpe=0@dont_blame_nrpe=1@g" $nagios_path
+rp=$(grep "allowed_hosts=127.0.0.1" $nrpe_conf)
+sed -i "s@${rp}*@allowed_hosts=127.0.0.1,${ip}@g" $nrpe_conf
+sed -i "s@dont_blame_nrpe=0@dont_blame_nrpe=1@g" $nrpe_conf
+
+
+#include=<somefile.cfg>
 
 #==============================================
 # FIREWALL
@@ -180,7 +171,7 @@ echo "Open Port NRPE Server"
   if [ $? != 1 ]; then
 
     if [[ "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
-      apt-get install -y iptables-persistent
+      apt-get install iptables-persistent
       iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
       iptables-save > /etc/iptables/rules.v4
     
@@ -193,7 +184,7 @@ echo "Open Port NRPE Server"
       iptables-save > /etc/sysconfig/iptables
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
-      apt-get install -y iptables-persistent
+      apt-get install iptables-persistent
       iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
       iptables-save > /etc/iptables/rules.v4
       
@@ -222,6 +213,7 @@ echo "Start & Enable Nagios NRPE Server Service"
       systemctl restart nrpe &> /dev/null
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
+      service nrpe start &> /dev/null
       systemctl enable nagios-nrpe-server &> /dev/null
       systemctl restart nagios-nrpe-server &> /dev/null
       
