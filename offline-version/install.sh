@@ -5,7 +5,7 @@
 # Thanks : frju365
 # License: GNU GPLv3
 
-version="0.6.5"
+version="0.6.6"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -30,7 +30,9 @@ distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
 distribution_old=$(cat /etc/issue | head -n +1 | awk '{print $1}')
 
 
-nagios_path=/etc/nagios/nrpe.cfg
+#nagios_path=/etc/nagios/nrpe.cfg
+nagios_path=/usr/local/nagios/etc/nrpe.cfg
+
 
 plugin1=check_service.sh
 plugin2=check_mem.sh
@@ -43,7 +45,7 @@ rhel_nrpe=/etc/nrpe.d
 test ! -e "$rhel_plugin" || echo "This path already contains a folder" | exit
 test ! -e "$rhel_nrpe" || echo "This path already contains a folder" | exit
 
-deb_plugin=/usr/lib/nagios/plugins
+deb_plugin=/usr/local/nagios/libexec/
 deb_nrpe=/etc/nagios/nrpe.d
 test ! -e "$deb_plugin" || echo "This path already contains a folder" | exit
 test ! -e "$deb_nrpe" || echo "This path already contains a folder" | exit
@@ -56,22 +58,22 @@ deb_conf='######################################################################
 # Syntax:\n
 #       command[<command_name>]=<command_line>\n
 #\n
-command[service]=/usr/lib/nagios/plugins/check_service.sh -o linux -t "systemctl list-units --state=failed"\n
-command[memory]=/usr/lib/nagios/plugins/check_mem.sh -w $ARG1$ -c $ARG2$\n
-command[cpu]=/usr/lib/nagios/plugins/check_cpu_utilization.sh -w $ARG1$ -c $ARG2$\n
-command[users]=/usr/lib/nagios/plugins/check_users -w $ARG1$ -c $ARG2$\n
-command[load]=/usr/lib/nagios/plugins/check_load -w $ARG1$ -c $ARG2$\n
-command[check_load]=/usr/lib/nagios/plugins/check_load -w $ARG1$ -c $ARG2$\n
-command[swap]=/usr/lib/nagios/plugins/check_swap -w $ARG1$ -c $ARG2$\n
-command[root_disk]=/usr/lib/nagios/plugins/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
-command[usr_disk]=/usr/lib/nagios/plugins/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
-command[var_disk]=/usr/lib/nagios/plugins/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
-command[zombie_procs]=/usr/lib/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -s Z\n
-command[total_procs]=/usr/lib/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$\n
-command[proc_named]=/usr/lib/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
-command[proc_crond]=/usr/lib/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
-command[proc_syslogd]=/usr/lib/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
-command[proc_rsyslogd]=/usr/lib/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$'
+command[service]=/usr/local/nagios/libexec/check_service.sh -o linux -t "systemctl list-units --state=failed"\n
+command[memory]=/usr/local/nagios/libexec/check_mem.sh -w $ARG1$ -c $ARG2$\n
+command[cpu]=/usr/local/nagios/libexec/check_cpu_utilization.sh -w $ARG1$ -c $ARG2$\n
+command[users]=/usr/local/nagios/libexec/check_users -w $ARG1$ -c $ARG2$\n
+command[load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$\n
+command[check_load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$\n
+command[swap]=/usr/local/nagios/libexec/check_swap -w $ARG1$ -c $ARG2$\n
+command[disk]=/usr/local/nagios/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
+command[usr_disk]=/usr/local/nagios/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
+command[var_disk]=/usr/local/nagios/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
+command[zombie_procs]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -s Z\n
+command[total_procs]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$\n
+command[proc_named]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
+command[proc_crond]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
+command[proc_syslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
+command[proc_rsyslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$'
 
 rhel_conf='################################################################################\n
 #\n
