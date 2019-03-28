@@ -5,7 +5,7 @@
 # Thanks : frju365
 # License: GNU GPLv3
 
-version="0.6.8"
+version="0.6.9"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -83,18 +83,18 @@ echo "Install Nagios NRPE Server"
   if [ $? != 0 ]; then
 
     if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" = Fedora ]]; then
-      yum install -y gcc glibc glibc-common openssl openssl-devel perl wget
-      tar xzf nrpe.tar.gz
+      yum install -y gcc glibc glibc-common openssl openssl-devel perl wget &> /dev/null
+      tar xzf nrpe.tar.gz &> /dev/null
 
       pushd nrpe-nrpe-3.2.1/
-      ./configure --enable-command-args
-      make all
-      make install-groups-users
-      make install
-      make install-config
-      make install-init
-      update-rc.d nrpe defaults # 5.x / 6.x
-      systemctl enable nrpe.service # 7.x
+      ./configure --enable-command-args &> /dev/null
+      make all &> /dev/null
+      make install-groups-users &> /dev/null
+      make install &> /dev/null
+      make install-config &> /dev/null
+      make install-init &> /dev/null
+      update-rc.d nrpe defaults &> /dev/null # 5.x / 6.x
+      systemctl enable nrpe.service &> /dev/null # 7.x
       popd
 
       pushd plugins/
@@ -108,18 +108,18 @@ echo "Install Nagios NRPE Server"
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" = Ubuntu ]]; then
       apt-get update
-      apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev wget bc --force-yes
-      tar xzf nrpe.tar.gz
+      apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev wget bc --force-yes &> /dev/null
+      tar xzf nrpe.tar.gz &> /dev/null
 
       pushd nrpe-nrpe-3.2.1/
-      ./configure --enable-command-args
-      make all
-      make install-groups-users
-      make install
-      make install-config
-      make install-init
-      update-rc.d nrpe defaults # 7.x
-      systemctl enable nrpe.service # 8.x / 9.x
+      ./configure --enable-command-args &> /dev/null
+      make all &> /dev/null
+      make install-groups-users &> /dev/null
+      make install &> /dev/null
+      make install-config &> /dev/null
+      make install-init &> /dev/null
+      update-rc.d nrpe defaults &> /dev/null # 7.x
+      systemctl enable nrpe.service &> /dev/null # 8.x / 9.x
       popd
 
       pushd plugins/
