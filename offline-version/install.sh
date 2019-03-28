@@ -31,12 +31,7 @@ distribution_old=$(cat /etc/issue | head -n +1 | awk '{print $1}')
 
 
 #nagios_path=/etc/nagios/nrpe.cfg
-nagios_path=/usr/local/nagios/etc/nrpe.cfg
-
-
-plugin1=check_service.sh
-plugin2=check_mem.sh
-plugin3=check_cpu_utilization.sh
+nrpe_conf=/usr/local/nagios/etc/nrpe.cfg
 
 port=5666
 
@@ -45,7 +40,7 @@ rhel_nrpe=/etc/nrpe.d
 test ! -e "$rhel_plugin" || echo "This path already contains a folder" | exit
 test ! -e "$rhel_nrpe" || echo "This path already contains a folder" | exit
 
-deb_plugin=/usr/local/nagios/libexec/
+nrpe_plugin=/usr/local/nagios/libexec/
 deb_nrpe=/etc/nagios/nrpe.d
 test ! -e "$deb_plugin" || echo "This path already contains a folder" | exit
 test ! -e "$deb_nrpe" || echo "This path already contains a folder" | exit
@@ -127,17 +122,41 @@ echo "Install Nagios NRPE Server"
       echo -e $rhel_conf > $rhel_nrpe/commands.cfg
     
     elif [[ "$distribution" =~ .CentOS || "$distribution" = CentOS ]]; then
-      pushd rhel/
-      yum localinstall -y nrpe* nagios* bc* &> /dev/null
+      yum install -y gcc glibc glibc-common openssl openssl-devel perl wget
+      tar xzf nrpe.tar.gz
+
+      pushd nrpe-nrpe-3.2.1/
+      ./configure --enable-command-args
+      make all
+      make install-groups-users
+      make install
+      make install-config
+      make install-init
+      update-rc.d nrpe defaults # 5.x / 6.x
+      systemctl enable nrpe.service # 7.x
       popd
-      mv $plugin1 $rhel_plugin &> /dev/null && mv $plugin2 $rhel_plugin &> /dev/null && mv $plugin3 $rhel_plugin &> /dev/null
-      chmod +x $rhel_plugin/check_service.sh && chmod +x $rhel_plugin/check_mem.sh && chmod +x $rhel_plugin/check_cpu_utilization.sh 
-      echo -e $rhel_conf > $rhel_nrpe/commands.cfg
+
+      pushd plugins/
+      mv * $nrpe_plugin &> /dev/null
+      popd
+
+      pushd $nrpe_plugin
+      chmod +x * && chown nagios:nagios *
+      popd
+      echo -e $rhel_conf > $nrpe_conf
+
+      #pushd rhel/
+      #yum localinstall -y nrpe* nagios* bc* &> /dev/null
+      #popd
+      #mv $plugin1 $rhel_plugin &> /dev/null && mv $plugin2 $rhel_plugin &> /dev/null && mv $plugin3 $rhel_plugin &> /dev/null
+      #chmod +x $rhel_plugin/check_service.sh && chmod +x $rhel_plugin/check_mem.sh && chmod +x $rhel_plugin/check_cpu_utilization.sh 
+      
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution_old" =~ .Debian ]]; then
       apt-get update
       apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev wget bc --force-yes
       tar xzf nrpe.tar.gz
+
       pushd nrpe-nrpe-3.2.1/
       ./configure --enable-command-args
       make all
@@ -148,17 +167,15 @@ echo "Install Nagios NRPE Server"
       update-rc.d nrpe defaults # 7.x
       systemctl enable nrpe.service # 8.x / 9.x
       popd
-      #pushd deb/
-      #dpkg --install nagios-nrpe-server* &> /dev/null
-      #popd
-      #apt install -y nagios-plugins-basic bc &> /dev/null
+
       pushd plugins/
-      mv * $deb_plugin &> /dev/null
+      mv * $nrpe_plugin &> /dev/null
       popd
-      pushd $deb_plugin
+
+      pushd $nrpe_plugin
       chmod +x * && chown nagios:nagios *
       popd
-      echo -e $deb_conf > $deb_nrpe/commands.cfg
+      echo -e $deb_conf > $nrpe_conf
       
     fi
 fi
