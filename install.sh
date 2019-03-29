@@ -82,9 +82,9 @@ command[proc_rsyslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$
 
 
 #==============================================
-# INSTALL NRPE Debian
+# INSTALL NRPE
 #==============================================
-echo "Install Nagios NRPE Server"
+echo "Install Nagios NRPE Server $distribution / $distribution_old"
 
   # Check OS & nrpe
 
