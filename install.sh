@@ -10,7 +10,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.7.4"
+  version="0.7.5"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -104,6 +104,9 @@ echo "Install Nagios NRPE Server"
       make install &> /dev/null
       make install-config &> /dev/null
       make install-init &> /dev/null
+      echo >> /etc/services
+      echo '# Nagios services' >> /etc/services
+      echo 'nrpe    5666/tcp' >> /etc/services
       update-rc.d nrpe defaults &> /dev/null # 5.x / 6.x
       systemctl enable nrpe.service &> /dev/null # 7.x
       popd
@@ -129,6 +132,9 @@ echo "Install Nagios NRPE Server"
       make install-groups-users &> /dev/null
       make install &> /dev/null
       make install-config &> /dev/null
+      echo >> /etc/services
+      echo '# Nagios services' >> /etc/services
+      echo 'nrpe    5666/tcp' >> /etc/services
       make install-init &> /dev/null
       update-rc.d nrpe defaults &> /dev/null # 7.x
       systemctl enable nrpe.service &> /dev/null # 8.x / 9.x
