@@ -70,7 +70,7 @@ For Debian 7.x
 
 ## Linux Compatibility :
 
-- Debian 9
-- Ubuntu Not supported now
-- Centos 7
-- Fedora 29
+- Debian 8 / 9
+- Ubuntu 18.04
+- Centos 6 / 7
+- Fedora 27 / 29
