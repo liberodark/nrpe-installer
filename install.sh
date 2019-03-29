@@ -122,7 +122,7 @@ echo "Install Nagios NRPE Server"
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" = Ubuntu ]]; then
       apt-get update &> /dev/null
-      apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev curl bc --force-yes &> /dev/null
+      apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make openssl libssl-dev curl bc --force-yes &> /dev/null
       curl -L https://github.com/liberodark/nrpe-installer/releases/download/0.7.1/nrpe-offline.tar.gz| tar --strip-components=1 -xzv &> /dev/null
       tar xzf nrpe.tar.gz &> /dev/null
 
