@@ -5,7 +5,7 @@
 # Thanks : frju365
 # License: GNU GPLv3
 
-version="0.7.1"
+version="0.7.2"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -83,6 +83,9 @@ echo "Install Nagios NRPE Server"
       make install-groups-users &> /dev/null
       make install &> /dev/null
       make install-config &> /dev/null
+      echo >> /etc/services
+      echo '# Nagios services' >> /etc/services
+      echo 'nrpe    5666/tcp' >> /etc/services
       make install-init &> /dev/null
       update-rc.d nrpe defaults &> /dev/null # 5.x / 6.x
       systemctl enable nrpe.service &> /dev/null # 7.x
@@ -108,6 +111,9 @@ echo "Install Nagios NRPE Server"
       make install-groups-users &> /dev/null
       make install &> /dev/null
       make install-config &> /dev/null
+      echo >> /etc/services
+      echo '# Nagios services' >> /etc/services
+      echo 'nrpe    5666/tcp' >> /etc/services
       make install-init &> /dev/null
       update-rc.d nrpe defaults &> /dev/null # 7.x
       systemctl enable nrpe.service &> /dev/null # 8.x / 9.x
