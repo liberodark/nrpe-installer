@@ -80,7 +80,7 @@ Buffers_MB=`echo ${Buffers}/1024|bc`
 
 message () {
 local stat="$1"
-echo "MEMORY is ${stat} - Usage: ${MemUsage_num}%"
+echo "MEMORY is ${stat} - Usage: ${MemUsage_num}%. Total: ${MemTotal_MB} MB Used: ${MemUsed_MB} MB Free: ${MemFree_MB} MB | Used=${MemUsed_MB};; Cached=${Cached_MB};; Buffers=${Buffers_MB};; Free=${MemFree_MB};;"
 }
 
 [ ${MemUsage_num} -lt ${warning_num} ] && message "OK" && exit ${STATE_OK}
