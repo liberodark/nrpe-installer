@@ -10,7 +10,7 @@
 #=================================================
 
   update_source="https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh"
-  version="0.7.5"
+  version="0.7.6"
 
   echo "Welcome on NRPE Install Script $version"
 
@@ -86,7 +86,7 @@ command[proc_rsyslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$
 #==============================================
 # INSTALL NRPE
 #==============================================
-echo "Install Nagios NRPE Server $distribution / $distribution_old"
+echo "Install Nagios NRPE Server"
 
   # Check OS & nrpe
 
