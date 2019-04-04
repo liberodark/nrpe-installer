@@ -5,7 +5,7 @@
 # Thanks : frju365
 # License: GNU GPLv3
 
-version="0.7.4"
+version="0.7.7"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -67,7 +67,7 @@ command[proc_rsyslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$
 #==============================================
 # INSTALL NRPE Debian
 #==============================================
-echo "Install Nagios NRPE Server $distribution / $distribution_old"
+echo "Install Nagios NRPE Server ($distribution)"
 
   # Check OS & nrpe
 
@@ -75,7 +75,7 @@ echo "Install Nagios NRPE Server $distribution / $distribution_old"
 
   if [ $? != 0 ]; then
 
-    if [[ "$distribution" =~ .CentOS || "$distribution" =~ .Red || "$distribution" =~ .Fedora || "$distribution" =~ .Suse ]]; then
+    if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
       yum install -y gcc glibc glibc-common openssl openssl-devel perl bc &> /dev/null
       tar xzf nrpe.tar.gz &> /dev/null
 
@@ -102,7 +102,7 @@ echo "Install Nagios NRPE Server $distribution / $distribution_old"
       popd
       echo -e $plugins_conf >> $nrpe_conf 
     
-    elif [[ "$distribution" =~ .Debian || "$distribution" =~ .Ubuntu ]]; then
+    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
       apt-get update &> /dev/null
       apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl bc --force-yes &> /dev/null
       tar xzf nrpe.tar.gz &> /dev/null
