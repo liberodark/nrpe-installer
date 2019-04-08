@@ -5,7 +5,7 @@
 # Thanks : frju365
 # License: GNU GPLv3
 
-version="0.7.9"
+version="0.8.0"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -136,13 +136,11 @@ fi
 #==============================================
 # ADD IP IN NAGIOS_PATH
 #==============================================
+echo "Configure NRPE"
 
 rp=$(grep "allowed_hosts=127.0.0.1" $nrpe_conf)
 sed -i "s@${rp}*@allowed_hosts=127.0.0.1,${ip}@g" $nrpe_conf
 sed -i "s@dont_blame_nrpe=0@dont_blame_nrpe=1@g" $nrpe_conf
-
-
-#include=<somefile.cfg>
 
 #==============================================
 # FIREWALL
