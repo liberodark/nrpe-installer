@@ -5,8 +5,13 @@ Nagios NRPE Installer
 
 Copy and Past in your terminal :
 
+##### Stable :
 ```bash
-wget -Nnv https://raw.githubusercontent.com/liberodark/nrpe-installer/master/install.sh && chmod +x install.sh; ./install.sh
+wget -Nnv https://raw.githubusercontent.com/liberodark/nrpe-installer/install.sh && chmod +x install.sh; ./install.sh
+```
+##### Beta :
+```bash
+wget -Nnv https://raw.githubusercontent.com/liberodark/nrpe-installer/beta/install.sh && chmod +x install.sh; ./install.sh
 ```
 
 ## SELinux :
