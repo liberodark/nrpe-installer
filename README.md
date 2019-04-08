@@ -64,11 +64,11 @@ Save your source list :
 
 For Debian 6.x
 
-```echo "deb http://archive.debian.org/debian/ squeeze main" >> /etc/apt/sources.list```
+```echo "deb http://archive.debian.org/debian/ squeeze main" > /etc/apt/sources.list```
 
 For Debian 7.x
 
-```echo "deb http://archive.debian.org/debian/ wheezy main" >> /etc/apt/sources.list```
+```echo "deb http://archive.debian.org/debian/ wheezy main" > /etc/apt/sources.list```
 
 ## Linux Compatibility :
 
