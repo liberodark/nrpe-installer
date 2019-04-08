@@ -95,7 +95,7 @@ echo "Install Nagios NRPE Server ($distribution)"
   if [ $? != 0 ]; then
 
     if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
-      yum install -y gcc glibc glibc-common openssl openssl-devel curl 
+      yum install -y gcc glibc glibc-common openssl openssl-devel curl bc
       curl -L https://github.com/liberodark/nrpe-installer/releases/download/0.7.1/nrpe-offline.tar.gz| tar --strip-components=1 -xzv 
       tar xzf nrpe.tar.gz 
 
