@@ -58,6 +58,10 @@ https://www.op5.com/
 
 ## Debian 6.x / 7.x
 
+For see your OS / Version
+
+```cat /etc/*release```
+
 Save your source list :
 
 ```cp -a /etc/apt/sources.list /etc/apt/sources.list.bak```
