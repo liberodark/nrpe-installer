@@ -94,6 +94,7 @@ echo "Install Nagios NRPE Server ($distribution)"
       make install-init 
       update-rc.d nrpe defaults  # 5.x / 6.x
       systemctl enable nrpe.service  # 7.x
+      /sbin/chkconfig nrpe on # 5.x / 6.x
       popd
 
       pushd plugins/
@@ -194,7 +195,9 @@ echo "Start & Enable Nagios NRPE Server Service"
     
     elif [[ "$distribution" =~ .CentOS || "$distribution" = CentOS ]]; then
       systemctl enable nrpe 
-      systemctl restart nrpe 
+      systemctl restart nrpe
+      /sbin/service nrpe start
+      
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
       service nrpe start 
