@@ -196,7 +196,7 @@ echo "Start & Enable Nagios NRPE Server Service"
     elif [[ "$distribution" =~ .CentOS || "$distribution" = CentOS ]]; then
       systemctl enable nrpe 
       systemctl restart nrpe
-      /sbin/service nrpe start
+      /sbin/service nrpe restart
       
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
