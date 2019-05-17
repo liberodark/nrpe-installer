@@ -85,7 +85,7 @@ echo "Install Nagios NRPE Server ($distribution)"
       # For better compatibility on Centos 6.x
       /usr/sbin/groupadd -r nagios
       /usr/sbin/useradd -g nagios nagios
-      #make install-groups-users 
+      make install-groups-users 
       make install 
       make install-config 
       echo >> /etc/services
