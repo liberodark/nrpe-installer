@@ -76,8 +76,8 @@ echo "Install Nagios NRPE Server ($distribution)"
   if [ $? != 0 ]; then
 
     if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
-      yum install -y gcc glibc glibc-common openssl openssl-devel bc &> /dev/null
-      tar xzf nrpe.tar.gz &> /dev/null
+      yum install -y gcc glibc glibc-common openssl openssl-devel bc
+      tar xzf nrpe.tar.gz
 
       pushd nrpe-nrpe-3.2.1/
       ./configure --enable-command-args 
