@@ -79,4 +79,5 @@ For Debian 7.x
 - Debian 7.x / 8.x / 9.x
 - Ubuntu 18.04
 - Centos 6.x / 7.x
+- Red Hat 6.x / 7.x / 8.x
 - Fedora 27 / 29
