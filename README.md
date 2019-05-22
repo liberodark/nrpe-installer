@@ -56,6 +56,17 @@ https://www.centreon.com/
 
 https://www.op5.com/
 
+
+## Linux Compatibility :
+
+- Debian 7.x / 8.x / 9.x
+- Ubuntu 18.04
+- Centos 6.x / 7.x
+- Red Hat 6.x / 7.x / 8.x
+- Fedora 27 / 29
+
+# Troubleshouting Debian
+
 ## Debian 6.x / 7.x
 
 For see your OS / Version
@@ -73,6 +84,7 @@ For Debian 6.x
 For Debian 7.x
 
 ```echo "deb http://archive.debian.org/debian/ wheezy main" > /etc/apt/sources.list```
+
 
 ## Upgrade Debian 7 to 8
 
@@ -113,11 +125,3 @@ Clean the packages
 ```
 apt-get dist-upgrade
 ```
-
-## Linux Compatibility :
-
-- Debian 7.x / 8.x / 9.x
-- Ubuntu 18.04
-- Centos 6.x / 7.x
-- Red Hat 6.x / 7.x / 8.x
-- Fedora 27 / 29
