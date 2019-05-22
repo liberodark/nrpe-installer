@@ -67,7 +67,7 @@ https://www.op5.com/
 
 # Troubleshouting Debian
 
-## Debian 6.x / 7.x
+## Update repo Debian 6.x / 7.x
 
 For see your OS / Version
 
