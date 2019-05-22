@@ -74,6 +74,46 @@ For Debian 7.x
 
 ```echo "deb http://archive.debian.org/debian/ wheezy main" > /etc/apt/sources.list```
 
+## Upgrade Debian 7 to 8
+
+```
+apt-get update && apt-get dist-upgrade -y
+```
+
+Remove source.list
+```
+rm /etc/apt/sources.list
+```
+
+Edit source.list
+```
+nano /etc/apt/sources.list
+```
+
+Copy and Past this on source.list
+```
+deb http://deb.debian.org/debian/ jessie main contrib non-free
+deb-src http://deb.debian.org/debian/ jessie main contrib non-free
+
+deb http://security.debian.org/ jessie/updates main contrib non-free
+deb-src http://security.debian.org/ jessie/updates main contrib non-free
+```
+
+Upgrade APT
+```
+apt-get install apt -t jessie
+```
+
+Upgrade your OS
+```
+apt-get update && apt-get upgrade -y
+```
+
+Clean the packages
+```
+apt-get dist-upgrade
+```
+
 ## Linux Compatibility :
 
 - Debian 7.x / 8.x / 9.x
