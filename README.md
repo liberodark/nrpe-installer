@@ -116,12 +116,7 @@ Upgrade APT
 apt-get update && apt-get install apt -t jessie -y
 ```
 
-Upgrade your OS
+Upgrade your OS (is important to stop all services ex: service apache2 stop)
 ```
-apt-get upgrade -y
-```
-
-Clean the packages
-```
-apt-get dist-upgrade
+apt-get dist-upgrade -y
 ```
