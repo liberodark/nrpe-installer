@@ -113,12 +113,12 @@ deb-src http://security.debian.org/ jessie/updates main contrib non-free
 
 Upgrade APT
 ```
-apt-get install apt -t jessie
+apt-get update && apt-get install apt -t jessie -y
 ```
 
 Upgrade your OS
 ```
-apt-get update && apt-get upgrade -y
+apt-get upgrade -y
 ```
 
 Clean the packages
