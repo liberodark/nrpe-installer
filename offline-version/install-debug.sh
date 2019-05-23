@@ -5,7 +5,7 @@
 # Thanks : frju365
 # License: GNU GPLv3
 
-version="0.8.2"
+version="0.8.3"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -97,6 +97,9 @@ echo "Install Nagios NRPE Server ($distribution)"
       /sbin/chkconfig nrpe on # 5.x / 6.x
       popd
 
+      mv nrpe /etc/init.d/ # 6.x
+      chmod +x /etc/init.d/nrpe # 6.x
+
       pushd plugins/
       mv * $nrpe_plugin 
       popd
@@ -124,6 +127,9 @@ echo "Install Nagios NRPE Server ($distribution)"
       update-rc.d nrpe defaults  # 7.x
       systemctl enable nrpe.service  # 8.x / 9.x
       popd
+
+      mv nrpe /etc/init.d/ # 6.x
+      chmod +x /etc/init.d/nrpe # 6.x
 
       pushd plugins/
       mv * $nrpe_plugin 
@@ -184,22 +190,14 @@ echo "Start & Enable Nagios NRPE Server Service"
 # Check OS & nrpe
 
   if [ $? != 1 ]; then
-
-    if [[ "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
-      systemctl enable nagios-nrpe-server 
-      systemctl restart nagios-nrpe-server 
     
-    elif [[ "$distribution" =~ .Fedora || "$distribution" = Fedora ]]; then
-      systemctl enable nrpe 
-      systemctl restart nrpe 
-    
-    elif [[ "$distribution" =~ .CentOS || "$distribution" = CentOS ]]; then
+    if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
       systemctl enable nrpe 
       systemctl restart nrpe
       /sbin/service nrpe restart
       
     
-    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
+    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
       service nrpe start 
       systemctl enable nagios-nrpe-server 
       systemctl restart nagios-nrpe-server 
