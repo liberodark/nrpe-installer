@@ -95,6 +95,7 @@ echo "Install Nagios NRPE Server ($distribution)"
 
       mv nrpe /etc/init.d/ # 6.x
       chmod +x /etc/init.d/nrpe # 6.x
+      chkconfig nrpe on # 5.x / 6.x
 
       pushd plugins/
       mv * $nrpe_plugin &> /dev/null
