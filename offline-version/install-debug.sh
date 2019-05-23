@@ -5,7 +5,7 @@
 # Thanks : frju365
 # License: GNU GPLv3
 
-version="0.8.1"
+version="0.8.2"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -154,22 +154,22 @@ echo "Open Port NRPE Server"
 # Check OS & nrpe
 
   if [ $? != 1 ]; then
-
-    if [[ "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
-      apt-get install iptables-persistent
-      iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
-      iptables-save > /etc/iptables/rules.v4
     
-    elif [[ "$distribution" =~ .Fedora || "$distribution" = Fedora ]]; then
-      iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
-      iptables-save > /etc/sysconfig/iptables
+    if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
+      firewall-cmd --permanent --zone=public --add-port=$port/tcp 
+      firewall-cmd --reload
+      #iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
+      #sudo iptables-save > /etc/sysconfig/iptables
+      #sudo chkconfig iptables on
+      #sudo service iptables save
     
-    elif [[ "$distribution" =~ .CentOS || "$distribution" = CentOS ]]; then
-      iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
-      iptables-save > /etc/sysconfig/iptables
-    
-    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian ]]; then
-      apt-get install iptables-persistent
+    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
+      #apt-get install ufw -y
+      #ufw default deny
+      #ufw default allow outgoing
+      #ufw allow 22/tcp && ufw allow 443/tcp && ufw allow $port/tcp
+      #ufw enable
+      apt-get install iptables-persistent -y
       iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
       iptables-save > /etc/iptables/rules.v4
       
