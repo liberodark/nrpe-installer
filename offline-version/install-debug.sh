@@ -94,11 +94,11 @@ echo "Install Nagios NRPE Server ($distribution)"
       make install-init 
       update-rc.d nrpe defaults  # 5.x / 6.x
       systemctl enable nrpe.service  # 7.x
-      /sbin/chkconfig nrpe on # 5.x / 6.x
       popd
 
       mv nrpe /etc/init.d/ # 6.x
       chmod +x /etc/init.d/nrpe # 6.x
+      /sbin/chkconfig nrpe on # 5.x / 6.x
 
       pushd plugins/
       mv * $nrpe_plugin 
