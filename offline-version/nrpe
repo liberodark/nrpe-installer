@@ -42,7 +42,6 @@ killtree() {
 stop() {
   printf "Stopping '$NAME'... "
   pkill nrpe
-  done 
   [ -z `cat /var/run/$NAME.pid 2>/dev/null` ] || rm /var/run/$NAME.pid
   printf "done\n"
 }
