@@ -97,6 +97,7 @@ static float get_cpu_pct(struct cpu_stats *cpu0, struct cpu_stats *cpu1)
 
 int main(int argc, char **argv)
 {
+	int result;
 	FILE *fp;
 	float warn_threshold;
 	float crit_threshold;
@@ -126,10 +127,17 @@ int main(int argc, char **argv)
 	cpu_pct = get_cpu_pct(&cpu0, &cpu1);
 
 	panic_str = "OK";
+	result = 0;
 	if (cpu_pct > crit_threshold)
+	{
 		panic_str = "Critical";
+		result = 2;
+	}
 	else if (cpu_pct > warn_threshold)
+	{
 		panic_str = "Warning";
+		result = 1;
+	}
 
 	printf("%s: CPU Used = %.2f%% | ", panic_str, cpu_pct);
 
@@ -142,5 +150,5 @@ int main(int argc, char **argv)
 		free(cores1);
 	}
 
-	return 0;
+	return result;
 }
