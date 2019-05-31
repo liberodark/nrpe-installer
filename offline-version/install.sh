@@ -124,6 +124,7 @@ echo "Install Nagios NRPE Server ($distribution)"
       chmod +x * && chown nagios:nagios *
       popd
       echo -e $plugins_conf >> $nrpe_conf
+      echo 'nagios ALL=NOPASSWD: /usr/local/nagios/libexec/check_cpu' >> /etc/sudoers
       
     fi
 fi
