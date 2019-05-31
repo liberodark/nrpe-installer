@@ -7,10 +7,15 @@
 
 #include <unistd.h>
 
+#define INVAL_SIZE UINT64_C(0xFFFFFFFFFFFFFFFF)
+
 struct mem_stats
 {
 	uint64_t total_kB;
 	uint64_t avail_kB;
+	uint64_t free_kB;
+	uint64_t buffers_kB;
+	uint64_t cached_kB;
 	uint64_t used_kB;
 };
 
@@ -22,6 +27,13 @@ static void dump_mem_stats(struct mem_stats *mem_stats)
 	char *nptr;
 
 	fp = fopen("/proc/meminfo", "r");
+
+	mem_stats->total_kB = INVAL_SIZE;
+	mem_stats->avail_kB = INVAL_SIZE;
+	mem_stats->free_kB = INVAL_SIZE;
+	mem_stats->buffers_kB = INVAL_SIZE;
+	mem_stats->cached_kB = INVAL_SIZE;
+	mem_stats->used_kB = INVAL_SIZE;
 
 	while (!feof(fp) && !ferror(fp))
 	{
@@ -39,11 +51,44 @@ static void dump_mem_stats(struct mem_stats *mem_stats)
 			mem_stats->avail_kB = strtoull(&line[13], &nptr, 10);
 			continue;
 		}
+
+		if (strncmp(&line[0], "memFree:", 8) == 0)
+		{
+			mem_stats->free_kB = strtoull(&line[8], &nptr, 10);
+			continue;
+		}
+
+		if (strncmp(&line[0], "Buffers:", 8) == 0)
+		{
+			mem_stats->buffers_kB = strtoull(&line[8], &nptr, 10);
+			continue;
+		}
+
+		if (strncmp(&line[0], "Cached:", 7) == 0)
+		{
+			mem_stats->cached_kB = strtoull(&line[7], &nptr, 10);
+			continue;
+		}
 	}
 
 	fclose(fp);
 
-	mem_stats->used_kB = mem_stats->total_kB - mem_stats->avail_kB;
+	if (mem_stats->avail_kB == INVAL_SIZE)
+	{
+		mem_stats->avail_kB = 0;
+
+		if (mem_stats->free_kB != INVAL_SIZE)
+			mem_stats->avail_kB += mem_stats->free_kB;
+
+		if (mem_stats->buffers_kB != INVAL_SIZE)
+			mem_stats->avail_kB += mem_stats->buffers_kB;
+
+		if (mem_stats->cached_kB != INVAL_SIZE)
+			mem_stats->avail_kB += mem_stats->cached_kB;
+	}
+
+	if (mem_stats->used_kB == INVAL_SIZE)
+		mem_stats->used_kB = mem_stats->total_kB - mem_stats->avail_kB;
 }
 
 int main(int argc, char **argv)
