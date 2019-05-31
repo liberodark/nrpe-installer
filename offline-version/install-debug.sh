@@ -5,7 +5,7 @@
 # Thanks : frju365
 # License: GNU GPLv3
 
-version="0.8.4"
+version="0.8.5"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -47,8 +47,7 @@ plugins_conf='##################################################################
 command[service]=/usr/local/nagios/libexec/check_service.sh -o linux -t "systemctl list-units --state=failed"\n
 command[memory]=/usr/local/nagios/libexec/check_mem.sh -w $ARG1$ -c $ARG2$\n
 command[memory_min]=/usr/local/nagios/libexec/check_mem_min.sh -w $ARG1$ -c $ARG2$\n
-command[cpu]=/usr/local/nagios/libexec/check_cpu_utilization.sh -w $ARG1$ -c $ARG2$\n
-command[cpu_min]=/usr/local/nagios/libexec/check_cpu_utilization_min.sh -w $ARG1$ -c $ARG2$\n
+command[cpu]=/usr/local/nagios/libexec/check_cpu -w $ARG1$ -c $ARG2$\n
 command[users]=/usr/local/nagios/libexec/check_users -w $ARG1$ -c $ARG2$\n
 command[load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$\n
 command[check_load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$\n
