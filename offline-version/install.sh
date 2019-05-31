@@ -2,7 +2,7 @@
 #
 # About: Install NRPE automatically
 # Author: liberodark
-# Thanks : frju365
+# Thanks : frju365, Booti386
 # License: GNU GPLv3
 
 version="0.8.5"
