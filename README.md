@@ -9,6 +9,12 @@ Copy and Past in your terminal :
 wget -Nnv https://raw.githubusercontent.com/liberodark/nrpe-installer/install.sh && chmod +x install.sh; ./install.sh
 ```
 
+## Compile plugins :
+
+```
+gcc check_cpu.c -o check_cpu -std=gnu99
+```
+
 ## SELinux :
 
 
