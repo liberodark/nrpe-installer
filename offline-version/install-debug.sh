@@ -75,7 +75,7 @@ echo "Install Nagios NRPE Server ($distribution)"
   if [ $? != 0 ]; then
 
     if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
-      yum install -y make gcc glibc glibc-common openssl openssl-devel
+      yum install -y make gcc glibc glibc-common openssl openssl-devel bc
       tar xzf nrpe.tar.gz
 
       pushd nrpe-nrpe-3.2.1/
@@ -104,7 +104,7 @@ echo "Install Nagios NRPE Server ($distribution)"
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
       apt-get update 
-      apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl --force-yes 
+      apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl bc --force-yes 
       tar xzf nrpe.tar.gz 
 
       pushd nrpe-nrpe-3.2.1/

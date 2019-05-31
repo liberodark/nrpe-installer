@@ -75,7 +75,7 @@ echo "Install Nagios NRPE Server ($distribution)"
   if [ $? != 0 ]; then
 
     if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
-      yum install -y make gcc glibc glibc-common openssl openssl-devel
+      yum install -y make gcc glibc glibc-common openssl openssl-devel bc
       tar xzf nrpe.tar.gz
 
       pushd nrpe-nrpe-3.2.1/
@@ -92,7 +92,6 @@ echo "Install Nagios NRPE Server ($distribution)"
       echo 'nrpe    5666/tcp' >> /etc/services
       make install-init 
       update-rc.d nrpe defaults  # 5.x / 6.x
-      systemctl enable nrpe.service  # 7.x
       popd
 
       mv nrpe /etc/init.d/ # 6.x
@@ -110,7 +109,7 @@ echo "Install Nagios NRPE Server ($distribution)"
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
       apt-get update 
-      apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl --force-yes 
+      apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl bc --force-yes 
       tar xzf nrpe.tar.gz 
 
       pushd nrpe-nrpe-3.2.1/
@@ -124,7 +123,6 @@ echo "Install Nagios NRPE Server ($distribution)"
       echo 'nrpe    5666/tcp' >> /etc/services
       make install-init 
       update-rc.d nrpe defaults  # 7.x
-      systemctl enable nrpe.service  # 8.x / 9.x
       popd
 
       mv nrpe /etc/init.d/ # 6.x
@@ -191,15 +189,11 @@ echo "Start & Enable Nagios NRPE Server Service"
   if [ $? != 1 ]; then
     
     if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
-      systemctl enable nrpe 
-      systemctl restart nrpe
       /sbin/service nrpe restart
       
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
       service nrpe start 
-      systemctl enable nagios-nrpe-server 
-      systemctl restart nagios-nrpe-server 
       
     fi
 fi
