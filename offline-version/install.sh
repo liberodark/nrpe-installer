@@ -75,7 +75,7 @@ echo "Install Nagios NRPE Server ($distribution)"
   if [ $? != 0 ]; then
 
     if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
-      yum install -y make gcc glibc glibc-common openssl openssl-devel bc &> /dev/null
+      yum install -y make gcc glibc glibc-common openssl openssl-devel &> /dev/null
       tar xzf nrpe.tar.gz &> /dev/null
 
       pushd nrpe-nrpe-3.2.1/
@@ -101,7 +101,7 @@ echo "Install Nagios NRPE Server ($distribution)"
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
       apt-get update &> /dev/null
-      apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl bc --force-yes &> /dev/null
+      apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl --force-yes &> /dev/null
       tar xzf nrpe.tar.gz &> /dev/null
 
       pushd nrpe-nrpe-3.2.1/
@@ -124,7 +124,6 @@ echo "Install Nagios NRPE Server ($distribution)"
       chmod +x * && chown nagios:nagios *
       popd
       echo -e $plugins_conf >> $nrpe_conf
-      echo 'nagios ALL=NOPASSWD: /usr/local/nagios/libexec/check_cpu' >> /etc/sudoers
       
     fi
 fi
