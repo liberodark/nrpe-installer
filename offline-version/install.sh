@@ -45,8 +45,7 @@ plugins_conf='##################################################################
 #       command[<command_name>]=<command_line>\n
 #\n
 command[service]=/usr/local/nagios/libexec/check_service.sh -o linux -t "systemctl list-units --state=failed"\n
-command[memory]=/usr/local/nagios/libexec/check_mem.sh -w $ARG1$ -c $ARG2$\n
-command[memory_min]=/usr/local/nagios/libexec/check_mem_min.sh -w $ARG1$ -c $ARG2$\n
+command[memory]=/usr/local/nagios/libexec/check_mem -w $ARG1$ -c $ARG2$\n
 command[cpu]=/usr/local/nagios/libexec/check_cpu -w $ARG1$ -c $ARG2$\n
 command[users]=/usr/local/nagios/libexec/check_users -w $ARG1$ -c $ARG2$\n
 command[load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$\n
@@ -75,7 +74,7 @@ echo "Install Nagios NRPE Server ($distribution)"
   if [ $? != 0 ]; then
 
     if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
-      yum install -y make gcc glibc glibc-common openssl openssl-devel bc &> /dev/null
+      yum install -y make gcc glibc glibc-common openssl openssl-devel &> /dev/null
       tar xzf nrpe.tar.gz &> /dev/null
 
       pushd nrpe-nrpe-3.2.1/
@@ -101,7 +100,7 @@ echo "Install Nagios NRPE Server ($distribution)"
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
       apt-get update &> /dev/null
-      apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl bc --force-yes &> /dev/null
+      apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl --force-yes &> /dev/null
       tar xzf nrpe.tar.gz &> /dev/null
 
       pushd nrpe-nrpe-3.2.1/
