@@ -139,7 +139,7 @@ int main(int argc, char **argv)
 		result = 1;
 	}
 
-	printf("%s: CPU Used = %.2f%% | ", panic_str, cpu_pct);
+	printf("CPU %s - Used = %.2f%% | ", panic_str, cpu_pct);
 
 	for (unsigned int i = 0; i < core_count; i++)
 		printf("Core %u = %.2f%%%s", i, get_cpu_pct(&cores0[i], &cores1[i]), (i < core_count - 1) ? "; " : "\n");
