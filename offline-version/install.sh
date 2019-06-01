@@ -5,7 +5,7 @@
 # Thanks : frju365, Booti386
 # License: GNU GPLv3
 
-version="0.8.5"
+version="0.8.6"
 
 echo "Welcome on NRPE Install Script $version"
 
