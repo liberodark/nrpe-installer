@@ -77,7 +77,7 @@ echo "Install Nagios NRPE Server ($distribution)"
       yum install -y make gcc glibc glibc-common openssl openssl-devel
       tar xzf nrpe.tar.gz
 
-      pushd nrpe-nrpe-3.2.1/
+      pushd nrpe-nrpe-3.2.1/ || exit
       ./configure --enable-command-args 
       make all
       # For better compatibility on Centos 6.x
@@ -91,27 +91,27 @@ echo "Install Nagios NRPE Server ($distribution)"
       echo 'nrpe    5666/tcp' >> /etc/services
       make install-init 
       update-rc.d nrpe defaults  # 5.x / 6.x
-      popd
+      popd || exit
 
       mv nrpe /etc/init.d/ # 6.x
       chmod +x /etc/init.d/nrpe # 6.x
       /sbin/chkconfig nrpe on # 5.x / 6.x
 
-      pushd plugins/
+      pushd plugins/ || exit
       mv * $nrpe_plugin 
-      popd
+      popd || exit
 
-      pushd $nrpe_plugin
+      pushd $nrpe_plugin || exit
       chmod +x * && chown nagios:nagios *
-      popd
-      echo -e $plugins_conf >> $nrpe_conf 
+      popd || exit
+      echo -e "$plugins_conf" >> $nrpe_conf 
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
       apt-get update 
       apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl --force-yes 
       tar xzf nrpe.tar.gz 
 
-      pushd nrpe-nrpe-3.2.1/
+      pushd nrpe-nrpe-3.2.1/ || exit
       ./configure --enable-command-args 
       make all 
       make install-groups-users 
@@ -122,19 +122,19 @@ echo "Install Nagios NRPE Server ($distribution)"
       echo 'nrpe    5666/tcp' >> /etc/services
       make install-init 
       update-rc.d nrpe defaults  # 7.x
-      popd
+      popd || exit
 
       mv nrpe /etc/init.d/ # 6.x
       chmod +x /etc/init.d/nrpe # 6.x
 
-      pushd plugins/
+      pushd plugins/ || exit
       mv * $nrpe_plugin 
-      popd
+      popd || exit
 
-      pushd $nrpe_plugin
+      pushd $nrpe_plugin || exit
       chmod +x * && chown nagios:nagios *
-      popd
-      echo -e $plugins_conf >> $nrpe_conf
+      popd || exit
+      echo -e "$plugins_conf" >> $nrpe_conf
       
     fi
 fi
