@@ -124,6 +124,31 @@ echo "Install Nagios NRPE Server ($distribution)"
       popd
       echo -e $plugins_conf >> $nrpe_conf
       
+     elif [[ "$distribution" =~ .Manjaro || "$distribution" = Manjaro || "$distribution" =~ .Arch Linux || "$distribution" = Arch Linux ]]; then
+      pacman -Su -y gcc openssl make automake --noconfirm &> /dev/null
+      tar xzf nrpe.tar.gz &> /dev/null
+
+      pushd nrpe-nrpe-3.2.1/
+      ./configure --enable-command-args &> /dev/null
+      make all &> /dev/null
+      make install-groups-users &> /dev/null
+      make install &> /dev/null
+      make install-config &> /dev/null
+      echo >> /etc/services
+      echo '# Nagios services' >> /etc/services
+      echo 'nrpe    5666/tcp' >> /etc/services
+      make install-init &> /dev/null
+      popd
+
+      pushd plugins/
+      mv * $nrpe_plugin &> /dev/null
+      popd
+
+      pushd $nrpe_plugin
+      chmod +x * && chown nagios:nagios *
+      popd
+      echo -e $plugins_conf >> $nrpe_conf
+      
     fi
 fi
 
