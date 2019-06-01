@@ -27,7 +27,7 @@ read ip
 #=================================================
 
 distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
-distribution_old=$(cat /etc/issue | head -n +1 | awk '{print $1}')
+#distribution_old=$(cat /etc/issue | head -n +1 | awk '{print $1}')
 
 nrpe_conf=/usr/local/nagios/etc/nrpe.cfg
 port=5666
@@ -77,7 +77,7 @@ echo "Install Nagios NRPE Server ($distribution)"
       yum install -y make gcc glibc glibc-common openssl openssl-devel &> /dev/null
       tar xzf nrpe.tar.gz &> /dev/null
 
-      pushd nrpe-nrpe-3.2.1/
+      pushd nrpe-nrpe-3.2.1/ || exit
       ./configure --enable-command-args &> /dev/null
       make all &> /dev/null
       make install-groups-users &> /dev/null
@@ -87,23 +87,23 @@ echo "Install Nagios NRPE Server ($distribution)"
       echo '# Nagios services' >> /etc/services
       echo 'nrpe    5666/tcp' >> /etc/services
       make install-init &> /dev/null
-      popd
+      popd || exit
 
-      pushd plugins/
+      pushd plugins/ || exit
       mv * $nrpe_plugin &> /dev/null
-      popd
+      popd || exit
 
-      pushd $nrpe_plugin
+      pushd $nrpe_plugin || exit
       chmod +x * && chown nagios:nagios *
-      popd
-      echo -e $plugins_conf >> $nrpe_conf 
+      popd || exit
+      echo -e "$plugins_conf" >> $nrpe_conf 
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
       apt-get update &> /dev/null
       apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl --force-yes &> /dev/null
       tar xzf nrpe.tar.gz &> /dev/null
 
-      pushd nrpe-nrpe-3.2.1/
+      pushd nrpe-nrpe-3.2.1/ || exit
       ./configure --enable-command-args &> /dev/null
       make all &> /dev/null
       make install-groups-users &> /dev/null
@@ -113,41 +113,16 @@ echo "Install Nagios NRPE Server ($distribution)"
       echo '# Nagios services' >> /etc/services
       echo 'nrpe    5666/tcp' >> /etc/services
       make install-init &> /dev/null
-      popd
+      popd || exit
 
-      pushd plugins/
+      pushd plugins/ || exit
       mv * $nrpe_plugin &> /dev/null
-      popd
+      popd || exit
 
-      pushd $nrpe_plugin
+      pushd $nrpe_plugin || exit
       chmod +x * && chown nagios:nagios *
-      popd
-      echo -e $plugins_conf >> $nrpe_conf
-      
-     elif [[ "$distribution" =~ .Manjaro || "$distribution" = Manjaro || "$distribution" =~ .Arch Linux || "$distribution" = Arch Linux ]]; then
-      pacman -Su -y gcc openssl make automake --noconfirm &> /dev/null
-      tar xzf nrpe.tar.gz &> /dev/null
-
-      pushd nrpe-nrpe-3.2.1/
-      ./configure --enable-command-args &> /dev/null
-      make all &> /dev/null
-      make install-groups-users &> /dev/null
-      make install &> /dev/null
-      make install-config &> /dev/null
-      echo >> /etc/services
-      echo '# Nagios services' >> /etc/services
-      echo 'nrpe    5666/tcp' >> /etc/services
-      make install-init &> /dev/null
-      popd
-
-      pushd plugins/
-      mv * $nrpe_plugin &> /dev/null
-      popd
-
-      pushd $nrpe_plugin
-      chmod +x * && chown nagios:nagios *
-      popd
-      echo -e $plugins_conf >> $nrpe_conf
+      popd || exit
+      echo -e "$plugins_conf" >> $nrpe_conf
       
     fi
 fi
