@@ -120,13 +120,13 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
     if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
       yum install -y make gcc glibc glibc-common openssl openssl-devel &> /dev/null
 
-      compile_nrpe_ssl      
+      compile_nrpe_ssl || exit
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
       apt-get update &> /dev/null
       apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl --force-yes &> /dev/null
     
-      compile_nrpe_ssl
+      compile_nrpe_ssl || exit
 
     fi
 fi
@@ -144,13 +144,13 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
     if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
       yum install -y make gcc glibc glibc-common &> /dev/null
 
-      compile_nrpe_nossl
+      conpile_nrpe_nossl || exit
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
       apt-get update &> /dev/null
       apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make --force-yes &> /dev/null
     
-      compile_nrpe_nossl
+      conpile_nrpe_nossl || exit
 
     fi
 fi
