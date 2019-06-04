@@ -65,6 +65,7 @@ command[proc_syslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ 
 command[proc_rsyslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$'
 
 install_nrpe(){
+      pushd nrpe-nrpe-3.2.1/ || exit
       ./configure --enable-command-args &> /dev/null
       make all &> /dev/null
       make install-groups-users &> /dev/null
@@ -86,6 +87,7 @@ install_nrpe(){
       }
 
 install_nrpe_nossl(){
+      pushd nrpe-nrpe-3.2.1/ || exit
       ./configure --enable-command-args --disable-ssl &> /dev/null
       make all &> /dev/null
       make install-groups-users &> /dev/null
@@ -104,6 +106,7 @@ install_nrpe_nossl(){
       pushd $nrpe_plugin || exit
       chmod +x * && chown nagios:nagios *
       echo -e "$plugins_conf" >> $nrpe_conf
+      popd || exit
       }
 
 
@@ -122,20 +125,14 @@ echo "Install Nagios NRPE Server ($distribution)"
       yum install -y make gcc glibc glibc-common openssl openssl-devel &> /dev/null
       tar xzf nrpe.tar.gz &> /dev/null
 
-      pushd nrpe-nrpe-3.2.1/ || exit
-      $install_nrpe
-      popd || exit
-       
+      $install_nrpe       
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
       apt-get update &> /dev/null
       apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl --force-yes &> /dev/null
       tar xzf nrpe.tar.gz &> /dev/null
-
-      pushd nrpe-nrpe-3.2.1/ || exit
-      if [ $? != 0 ]; then
-      $install_nrpe
-      popd || exit
+    
+      $install_nrpe 
       
     fi
 fi
