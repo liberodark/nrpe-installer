@@ -72,18 +72,18 @@ https://www.op5.com/
 
 ### Linux Compatibility : (Systemd work 100%)
 
-- Debian 7.x / 8.x / 9.x
+- Debian 8.x / 9.x
 - Ubuntu 16.04 / 19.10
-- Centos 6.x / 7.x
-- Red Hat 6.x / 7.x / 8.x
+- Centos 7.x / 8.x
+- Red Hat 7.x / 8.x
 - Fedora 15 / 30
 
 ### Linux Compatibility : (SysV / Upstart work 88%)
 
-- Debian 6.x
+- Debian 6.x / 7.x
 - Ubuntu 14.04
-- Centos 5.x
-- Red Hat 5.x
+- Centos 5.x / 6.x
+- Red Hat 5.x / 6.x
 - Fedora 14
 
 # Troubleshouting Debian
