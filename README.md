@@ -67,7 +67,7 @@ https://www.op5.com/
 - Ubuntu 18.04
 - Centos 6.x / 7.x
 - Red Hat 6.x / 7.x / 8.x
-- Fedora 27 / 29
+- Fedora 15 / 30
 
 # Troubleshouting Debian
 
