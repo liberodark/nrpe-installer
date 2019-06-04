@@ -5,7 +5,7 @@
 # Thanks : frju365, Booti386
 # License: GNU GPLv3
 
-version="0.8.7"
+version="0.8.8"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -117,7 +117,7 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
 
   if [ $? != 0 ]; then
 
-    if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
+    if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red\ Hat || "$distribution" =~ .Fedora || "$distribution" =~ .Suse ]]; then
       yum install -y make gcc glibc glibc-common openssl openssl-devel &> /dev/null
 
       compile_nrpe_ssl || exit
@@ -125,6 +125,11 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
     elif [[ "$distribution" =~ .Debian || "$distribution" =~ .Ubuntu || "$distribution" =~ .Deepin ]]; then
       apt-get update &> /dev/null
       apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl --force-yes &> /dev/null
+    
+      compile_nrpe_ssl || exit
+      
+    elif [[ "$distribution" =~ .Manjaro || "$distribution" =~ .Arch\ Linux ]]; then
+      pacman -Su make autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl --no-confirm &> /dev/null
     
       compile_nrpe_ssl || exit
 
@@ -141,7 +146,7 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
 
   if [ $? != 0 ]; then
 
-    if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
+    if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red\ Hat || "$distribution" =~ .Fedora || "$distribution" =~ .Suse  ]]; then
       yum install -y make gcc glibc glibc-common &> /dev/null
 
       conpile_nrpe_nossl || exit
@@ -149,6 +154,11 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
     elif [[ "$distribution" =~ .Debian || "$distribution" =~ .Ubuntu || "$distribution" =~ .Deepin ]]; then
       apt-get update &> /dev/null
       apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make --force-yes &> /dev/null
+    
+      conpile_nrpe_nossl || exit
+      
+    elif [[ "$distribution" =~ .Manjaro || "$distribution" =~ .Arch\ Linux ]]; then
+      pacman -Su make autoconf automake gcc libc6 libmcrypt-dev make --no-confirm &> /dev/null
     
       conpile_nrpe_nossl || exit
 
