@@ -108,20 +108,6 @@ conpile_nrpe_nossl(){
       popd || exit
       }
 
-
-#==============================================
-# INSTALL NRPE
-#==============================================
-
-while true; do
-    read -p "Compile with ssl ?" yn
-    case $yn in
-        [Yy]* ) nrpe_ssl; break;;
-        [Nn]* ) nrpe_nossl;;
-        * ) echo "Please answer yes or no.";;
-    esac
-done
-
 nrpe_ssl(){
 echo "Install Nagios NRPE Server with SSL ($distribution)"
 
@@ -169,6 +155,19 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
     fi
 fi
 }
+
+#==============================================
+# INSTALL NRPE
+#==============================================
+
+while true; do
+    read -p "Compile with ssl ?" yn
+    case $yn in
+        [Yy]* ) nrpe_ssl; break;;
+        [Nn]* ) nrpe_nossl;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
 
 #==============================================
 # ADD IP IN NAGIOS_PATH
