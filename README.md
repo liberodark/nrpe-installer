@@ -6,7 +6,7 @@ Nagios NRPE Installer
 Copy and Past in your terminal :
 
 ```bash
-git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && chmod +x install.sh; ./install.sh
+git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && chmod +x install.sh; sudo ./install.sh
 ```
 
 
@@ -15,7 +15,7 @@ git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && c
 Copy and Past in your terminal :
 
 ```bash
-git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && chmod +x install-debug-old.sh; ./install-debug-old.sh
+git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && chmod +x install-debug-old.sh; sudo ./install-debug-old.sh
 ```
 
 ### Compile plugins :
