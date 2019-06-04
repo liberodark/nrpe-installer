@@ -70,16 +70,16 @@ compile_nrpe_ssl(){
       make install-groups-users &> /dev/null
       make install &> /dev/null
       make install-config &> /dev/null
-      echo >> /etc/services
-      #echo '# Nagios services' >> /etc/services
-      #echo 'nrpe    5666/tcp' >> /etc/services
+      #echo >> /etc/services
+      echo '# Nagios services' >> /etc/services
+      echo 'nrpe    5666/tcp' >> /etc/services
       make install-init &> /dev/null
       popd || exit
 
-      mv ./plugins/*check* "$nrpe_plugin"
+      mv ./plugins/check* "$nrpe_plugin"
 
       pushd $nrpe_plugin || exit
-      chmod +x ./*check* && chown nagios:nagios ./*check*
+      chmod +x ./check* && chown nagios:nagios ./check*
       echo -e "$plugins_conf" >> "$nrpe_conf"
       }
 
@@ -91,16 +91,16 @@ compile_nrpe_nossl(){
       make install-groups-users &> /dev/null
       make install &> /dev/null
       make install-config &> /dev/null
-      echo >> /etc/services
+      #echo >> /etc/services
       echo '# Nagios services' >> /etc/services
       echo 'nrpe    5666/tcp' >> /etc/services
       make install-init &> /dev/null
       popd || exit
 
-      mv ./plugins/*check* "$nrpe_plugin"
+      mv ./plugins/check* "$nrpe_plugin"
 
       pushd $nrpe_plugin || exit
-      chmod +x ./*check* && chown nagios:nagios ./*check*
+      chmod +x ./check* && chown nagios:nagios ./check*
       echo -e "$plugins_conf" >> "$nrpe_conf"
       }
 
@@ -109,9 +109,7 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
 
   # Check OS & nrpe
 
-  command -v nrpe &> /dev/null
-
-  if [ $? != 0 ]; then
+  if ! command -v nrpe &> /dev/null; then
 
     if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red\ Hat || "$distribution" =~ .Fedora || "$distribution" =~ .Suse ]]; then
       yum install -y make gcc glibc glibc-common openssl openssl-devel &> /dev/null
@@ -138,9 +136,7 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
 
   # Check OS & nrpe
 
-  command -v nrpe &> /dev/null
-
-  if [ $? != 0 ]; then
+  if ! command -v nrpe &> /dev/null; then
 
     if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red\ Hat || "$distribution" =~ .Fedora || "$distribution" =~ .Suse  ]]; then
       yum install -y make gcc glibc glibc-common &> /dev/null
