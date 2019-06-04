@@ -1,7 +1,7 @@
 # NRPE Installer
 Nagios NRPE Installer
 
-### How to use for Systemd OS : (If you do not know looked linux compatibility)
+### How to use for Systemd OS :
 
 Copy and Past in your terminal :
 
@@ -10,7 +10,7 @@ git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && c
 ```
 
 
-### How to use for SysV / Upstart OS : (If you do not know looked linux compatibility)
+### How to use for SysV / Upstart OS :
 
 Copy and Past in your terminal :
 
@@ -70,7 +70,7 @@ https://www.centreon.com/
 https://www.op5.com/
 
 
-### Linux Compatibility : (Systemd work 100%)
+### Linux Compatibility : (Systemd)
 
 - Debian 8.x / 9.x
 - Ubuntu 16.04 / 19.10
@@ -78,7 +78,7 @@ https://www.op5.com/
 - Red Hat 7.x / 8.x
 - Fedora 15 / 30
 
-### Linux Compatibility : (SysV / Upstart work 88%)
+### Linux Compatibility : (SysV / Upstart)
 
 - Debian 6.x / 7.x
 - Ubuntu 14.04
