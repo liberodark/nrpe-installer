@@ -36,7 +36,8 @@ nrpe_plugin=/usr/local/nagios/libexec/
 test ! -e "$nrpe_conf" || echo "This path already contains a folder" | exit
 test ! -e "$nrpe_plugin" || echo "This path already contains a folder" | exit
 
-plugins_conf='################################################################################\n 
+plugins_conf="
+################################################################################\n 
 #\n
 # nrpe command configuration file\n
 #\n
@@ -59,7 +60,7 @@ command[total_procs]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$\n
 command[proc_named]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
 command[proc_crond]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
 command[proc_syslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
-command[proc_rsyslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$'
+command[proc_rsyslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$"
 
 compile_nrpe_ssl(){
       tar xzf nrpe.tar.gz &> /dev/null
@@ -76,7 +77,7 @@ compile_nrpe_ssl(){
       popd || exit
 
       pushd plugins/ || exit
-      mv * $nrpe_plugin
+      mv * "$nrpe_plugin"
       popd || exit
 
       pushd $nrpe_plugin || exit
