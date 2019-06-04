@@ -84,7 +84,7 @@ compile_nrpe_ssl(){
       echo -e "$plugins_conf" >> $nrpe_conf
       }
 
-conpile_nrpe_nossl(){
+compile_nrpe_nossl(){
       tar xzf nrpe.tar.gz &> /dev/null
       pushd nrpe-nrpe-3.2.1/ || exit
       ./configure --enable-command-args --disable-ssl &> /dev/null
@@ -149,18 +149,18 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
     if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red\ Hat || "$distribution" =~ .Fedora || "$distribution" =~ .Suse  ]]; then
       yum install -y make gcc glibc glibc-common &> /dev/null
 
-      conpile_nrpe_nossl || exit
+      compile_nrpe_nossl || exit
     
     elif [[ "$distribution" =~ .Debian || "$distribution" =~ .Ubuntu || "$distribution" =~ .Deepin ]]; then
       apt-get update
       apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make --force-yes &> /dev/null
     
-      conpile_nrpe_nossl || exit
+      compile_nrpe_nossl || exit
       
     elif [[ "$distribution" =~ .Manjaro || "$distribution" =~ .Arch\ Linux ]]; then
       pacman -S make autoconf automake gcc glibc libmcrypt --noconfirm &> /dev/null
     
-      conpile_nrpe_nossl || exit
+      compile_nrpe_nossl || exit
 
     fi
 fi
