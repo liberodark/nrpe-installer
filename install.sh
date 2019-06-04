@@ -20,7 +20,7 @@ if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
 #=================================================
 
 echo "What is your server ip ?"
-read ip
+read -r ip
 
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST AND VAR
@@ -113,7 +113,7 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
 
   # Check OS & nrpe
 
-  which nrpe &> /dev/null
+  command -v nrpe &> /dev/null
 
   if [ $? != 0 ]; then
 
@@ -142,7 +142,7 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
 
   # Check OS & nrpe
 
-  which nrpe &> /dev/null
+  command -v nrpe &> /dev/null
 
   if [ $? != 0 ]; then
 
@@ -171,7 +171,7 @@ fi
 #==============================================
 
 while true; do
-    read -p "Compile with ssl ?" yn
+    read -r -p "Compile with ssl ?" yn
     case $yn in
         [Yy]* ) nrpe_ssl; break;;
         [Nn]* ) nrpe_nossl; break;;
