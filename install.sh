@@ -71,18 +71,16 @@ compile_nrpe_ssl(){
       make install &> /dev/null
       make install-config &> /dev/null
       echo >> /etc/services
-      echo '# Nagios services' >> /etc/services
-      echo 'nrpe    5666/tcp' >> /etc/services
+      #echo '# Nagios services' >> /etc/services
+      #echo 'nrpe    5666/tcp' >> /etc/services
       make install-init &> /dev/null
       popd || exit
 
-      pushd plugins/ || exit
-      mv * "$nrpe_plugin"
-      popd || exit
+      mv ./plugins/*check* "$nrpe_plugin"
 
       pushd $nrpe_plugin || exit
-      chmod +x * && chown nagios:nagios *
-      echo -e "$plugins_conf" >> $nrpe_conf
+      chmod +x ./*check* && chown nagios:nagios ./*check*
+      echo -e "$plugins_conf" >> "$nrpe_conf"
       }
 
 compile_nrpe_nossl(){
@@ -99,14 +97,11 @@ compile_nrpe_nossl(){
       make install-init &> /dev/null
       popd || exit
 
-      pushd plugins/ || exit
-      mv * $nrpe_plugin
-      popd || exit
+      mv ./plugins/*check* "$nrpe_plugin"
 
       pushd $nrpe_plugin || exit
-      chmod +x * && chown nagios:nagios *
-      echo -e "$plugins_conf" >> $nrpe_conf
-      popd || exit
+      chmod +x ./*check* && chown nagios:nagios ./*check*
+      echo -e "$plugins_conf" >> "$nrpe_conf"
       }
 
 nrpe_ssl(){
