@@ -1,7 +1,7 @@
 # NRPE Installer
 Nagios NRPE Installer
 
-## How to use for Systemd OS : (If you do not know looked linux compatibility)
+### How to use for Systemd OS : (If you do not know looked linux compatibility)
 
 Copy and Past in your terminal :
 
@@ -10,7 +10,7 @@ git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && c
 ```
 
 
-## How to use for SysV / Upstart OS : (If you do not know looked linux compatibility)
+### How to use for SysV / Upstart OS : (If you do not know looked linux compatibility)
 
 Copy and Past in your terminal :
 
@@ -18,13 +18,13 @@ Copy and Past in your terminal :
 git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && chmod +x install-debug-old.sh; ./install-debug-old.sh
 ```
 
-## Compile plugins :
+### Compile plugins :
 
 ```
 gcc check_cpu.c -o check_cpu -std=gnu99
 ```
 
-## SELinux :
+### SELinux :
 
 
 ```bash
@@ -40,7 +40,7 @@ wget -O nrpe.tar.gz https://github.com/liberodark/nrpe-installer/releases/downlo
 tar -xvf nrpe.tar.gz && sudo rm nrpe.tar.gz && semodule -i nrpe.pp
 ```
 
-## Plugins Configuration :
+### Plugins Configuration :
 
 ```
 command[service]=/usr/local/nagios/libexec/check_service.sh -o linux -t "systemctl list-units --state=failed"
@@ -61,7 +61,7 @@ command[proc_syslogd]=/usr/local/nagios/libexec/check_procs -w 1: -c 1:2 -C sysl
 command[proc_rsyslogd]=/usr/local/nagios/libexec/check_procs -w 1: -c 1:2 -C rsyslogd
 ```
 
-## Monitoring Compatibility :
+### Monitoring Compatibility :
 
 https://www.eyesofnetwork.com/
 
@@ -70,7 +70,7 @@ https://www.centreon.com/
 https://www.op5.com/
 
 
-## Linux Compatibility : (Systemd work 100%)
+### Linux Compatibility : (Systemd work 100%)
 
 - Debian 7.x / 8.x / 9.x
 - Ubuntu 16.04 / 19.10
@@ -78,7 +78,7 @@ https://www.op5.com/
 - Red Hat 6.x / 7.x / 8.x
 - Fedora 15 / 30
 
-## Linux Compatibility : (SysV / Upstart work 88%)
+### Linux Compatibility : (SysV / Upstart work 88%)
 
 - Debian 6.x
 - Ubuntu 14.04
@@ -88,7 +88,7 @@ https://www.op5.com/
 
 # Troubleshouting Debian
 
-## Update repo Debian 6.x / 7.x
+### Update repo Debian 6.x / 7.x
 
 For see your OS / Version
 
@@ -107,7 +107,7 @@ For Debian 7.x
 ```echo "deb http://archive.debian.org/debian/ wheezy main" > /etc/apt/sources.list```
 
 
-## Upgrade Debian 7 to 8
+### Upgrade Debian 7 to 8
 
 ```
 apt-get update && apt-get dist-upgrade -y
