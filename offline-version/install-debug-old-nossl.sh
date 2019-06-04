@@ -16,21 +16,18 @@ echo "Welcome on NRPE Install Script $version"
 if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
 
 #=================================================
-# ASK
+# IP
 #=================================================
 
 echo "What is your server ip ?"
 read ip
-
-echo "Compile with ssl ?"
-read ssl
 
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST AND VAR
 #=================================================
 
 distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
-#distribution_old=$(cat /etc/issue | head -n +1 | awk '{print $1}')
+distribution_old=$(cat /etc/issue | head -n +1 | awk '{print $1}')
 
 nrpe_conf=/usr/local/nagios/etc/nrpe.cfg
 port=5666
@@ -64,48 +61,6 @@ command[proc_crond]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C
 command[proc_syslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
 command[proc_rsyslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$'
 
-install_nrpe(){
-      ./configure --enable-command-args &> /dev/null
-      make all &> /dev/null
-      make install-groups-users &> /dev/null
-      make install &> /dev/null
-      make install-config &> /dev/null
-      echo >> /etc/services
-      echo '# Nagios services' >> /etc/services
-      echo 'nrpe    5666/tcp' >> /etc/services
-      make install-init &> /dev/null
-      popd || exit
-
-      pushd plugins/ || exit
-      mv * $nrpe_plugin &> /dev/null
-      popd || exit
-
-      pushd $nrpe_plugin || exit
-      chmod +x * && chown nagios:nagios *
-      echo -e "$plugins_conf" >> $nrpe_conf
-      }
-
-install_nrpe_nossl(){
-      ./configure --enable-command-args --disable-ssl &> /dev/null
-      make all &> /dev/null
-      make install-groups-users &> /dev/null
-      make install &> /dev/null
-      make install-config &> /dev/null
-      echo >> /etc/services
-      echo '# Nagios services' >> /etc/services
-      echo 'nrpe    5666/tcp' >> /etc/services
-      make install-init &> /dev/null
-      popd || exit
-
-      pushd plugins/ || exit
-      mv * $nrpe_plugin &> /dev/null
-      popd || exit
-
-      pushd $nrpe_plugin || exit
-      chmod +x * && chown nagios:nagios *
-      echo -e "$plugins_conf" >> $nrpe_conf
-      }
-
 
 #==============================================
 # INSTALL NRPE Debian
@@ -119,23 +74,67 @@ echo "Install Nagios NRPE Server ($distribution)"
   if [ $? != 0 ]; then
 
     if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
-      yum install -y make gcc glibc glibc-common openssl openssl-devel &> /dev/null
-      tar xzf nrpe.tar.gz &> /dev/null
+      yum install -y make gcc glibc glibc-common
+      tar xzf nrpe.tar.gz
 
       pushd nrpe-nrpe-3.2.1/ || exit
-      $install_nrpe
+      ./configure --enable-command-args --disable-ssl
+      make all
+      # For better compatibility on Centos 6.x
+      /usr/sbin/groupadd -r nagios
+      /usr/sbin/useradd -g nagios nagios
+      make install-groups-users 
+      make install 
+      make install-config 
+      echo >> /etc/services
+      echo '# Nagios services' >> /etc/services
+      echo 'nrpe    5666/tcp' >> /etc/services
+      make install-init 
+      update-rc.d nrpe defaults  # 5.x / 6.x
       popd || exit
-       
+
+      mv nrpe /etc/init.d/ # 6.x
+      chmod +x /etc/init.d/nrpe # 6.x
+      /sbin/chkconfig nrpe on # 5.x / 6.x
+
+      pushd plugins/ || exit
+      mv * $nrpe_plugin 
+      popd || exit
+
+      pushd $nrpe_plugin || exit
+      chmod +x * && chown nagios:nagios *
+      popd || exit
+      echo -e "$plugins_conf" >> $nrpe_conf 
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
-      apt-get update &> /dev/null
-      apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl --force-yes &> /dev/null
-      tar xzf nrpe.tar.gz &> /dev/null
+      apt-get update 
+      apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make --force-yes 
+      tar xzf nrpe.tar.gz 
 
       pushd nrpe-nrpe-3.2.1/ || exit
-      if [ $? != 0 ]; then
-      $install_nrpe
+      ./configure --enable-command-args --disable-ssl
+      make all 
+      make install-groups-users 
+      make install 
+      make install-config 
+      echo >> /etc/services
+      echo '# Nagios services' >> /etc/services
+      echo 'nrpe    5666/tcp' >> /etc/services
+      make install-init 
+      update-rc.d nrpe defaults  # 7.x
       popd || exit
+
+      mv nrpe /etc/init.d/ # 6.x
+      chmod +x /etc/init.d/nrpe # 6.x
+
+      pushd plugins/ || exit
+      mv * $nrpe_plugin 
+      popd || exit
+
+      pushd $nrpe_plugin || exit
+      chmod +x * && chown nagios:nagios *
+      popd || exit
+      echo -e "$plugins_conf" >> $nrpe_conf
       
     fi
 fi
@@ -172,9 +171,9 @@ echo "Open Port NRPE Server"
       #ufw default allow outgoing
       #ufw allow 22/tcp && ufw allow 443/tcp && ufw allow $port/tcp
       #ufw enable
-      #apt-get install iptables-persistent -y
+      apt-get install iptables-persistent -y
       iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
-      #iptables-save > /etc/iptables/rules.v4
+      iptables-save > /etc/iptables/rules.v4
       
     fi
 fi
@@ -184,5 +183,16 @@ fi
 #==============================================
 echo "Start & Enable Nagios NRPE Server Service"
 
-systemctl enable nrpe 
-systemctl restart nrpe
+# Check OS & nrpe
+
+  if [ $? != 1 ]; then
+    
+    if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
+      /sbin/service nrpe restart
+      
+    
+    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
+      service nrpe start 
+      
+    fi
+fi
