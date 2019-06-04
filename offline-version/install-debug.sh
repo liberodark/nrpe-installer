@@ -5,7 +5,7 @@
 # Thanks : frju365, Booti386
 # License: GNU GPLv3
 
-version="0.8.6"
+version="0.8.7"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -16,7 +16,7 @@ echo "Welcome on NRPE Install Script $version"
 if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
 
 #=================================================
-# IP
+# ASK
 #=================================================
 
 echo "What is your server ip ?"
@@ -61,74 +61,113 @@ command[proc_crond]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C
 command[proc_syslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
 command[proc_rsyslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$'
 
+compile_nrpe_ssl(){
+      tar xzf nrpe.tar.gz
+      pushd nrpe-nrpe-3.2.1/ || exit
+      ./configure --enable-command-args
+      make all
+      make install-groups-users
+      make install
+      make install-config
+      echo >> /etc/services
+      echo '# Nagios services' >> /etc/services
+      echo 'nrpe    5666/tcp' >> /etc/services
+      make install-init
+      popd || exit
 
-#==============================================
-# INSTALL NRPE Debian
-#==============================================
-echo "Install Nagios NRPE Server ($distribution)"
+      pushd plugins/ || exit
+      mv * $nrpe_plugin
+      popd || exit
+
+      pushd $nrpe_plugin || exit
+      chmod +x * && chown nagios:nagios *
+      echo -e "$plugins_conf" >> $nrpe_conf
+      }
+
+conpile_nrpe_nossl(){
+      tar xzf nrpe.tar.gz
+      pushd nrpe-nrpe-3.2.1/ || exit
+      ./configure --enable-command-args --disable-ssl
+      make all
+      make install-groups-users
+      make install
+      make install-config
+      echo >> /etc/services
+      echo '# Nagios services' >> /etc/services
+      echo 'nrpe    5666/tcp' >> /etc/services
+      make install-init
+      popd || exit
+
+      pushd plugins/ || exit
+      mv * $nrpe_plugin
+      popd || exit
+
+      pushd $nrpe_plugin || exit
+      chmod +x * && chown nagios:nagios *
+      echo -e "$plugins_conf" >> $nrpe_conf
+      popd || exit
+      }
+
+nrpe_ssl(){
+echo "Install Nagios NRPE Server with SSL ($distribution)"
 
   # Check OS & nrpe
 
-  which nrpe &> /dev/null
+  which nrpe
 
   if [ $? != 0 ]; then
 
     if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
       yum install -y make gcc glibc glibc-common openssl openssl-devel
-      tar xzf nrpe.tar.gz
 
-      pushd nrpe-nrpe-3.2.1/ || exit
-      ./configure --enable-command-args 
-      make all
-      # For better compatibility on Centos 6.x
-      /usr/sbin/groupadd -r nagios
-      /usr/sbin/useradd -g nagios nagios
-      make install-groups-users 
-      make install 
-      make install-config 
-      echo >> /etc/services
-      echo '# Nagios services' >> /etc/services
-      echo 'nrpe    5666/tcp' >> /etc/services
-      make install-init
-      popd || exit
-
-      pushd plugins/ || exit
-      mv * $nrpe_plugin 
-      popd || exit
-
-      pushd $nrpe_plugin || exit
-      chmod +x * && chown nagios:nagios *
-      popd || exit
-      echo -e "$plugins_conf" >> $nrpe_conf 
+      compile_nrpe_ssl || exit
     
     elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
-      apt-get update 
-      apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl --force-yes 
-      tar xzf nrpe.tar.gz 
+      apt-get update
+      apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl --force-yes
+    
+      compile_nrpe_ssl || exit
 
-      pushd nrpe-nrpe-3.2.1/ || exit
-      ./configure --enable-command-args 
-      make all 
-      make install-groups-users 
-      make install 
-      make install-config 
-      echo >> /etc/services
-      echo '# Nagios services' >> /etc/services
-      echo 'nrpe    5666/tcp' >> /etc/services
-      make install-init
-      popd || exit
-
-      pushd plugins/ || exit
-      mv * $nrpe_plugin 
-      popd || exit
-
-      pushd $nrpe_plugin || exit
-      chmod +x * && chown nagios:nagios *
-      popd || exit
-      echo -e "$plugins_conf" >> $nrpe_conf
-      
     fi
 fi
+}
+
+nrpe_nossl(){
+echo "Install Nagios NRPE Server without SSL ($distribution)"
+
+  # Check OS & nrpe
+
+  which nrpe
+
+  if [ $? != 0 ]; then
+
+    if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
+      yum install -y make gcc glibc glibc-common
+
+      conpile_nrpe_nossl || exit
+    
+    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
+      apt-get update
+      apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make --force-yes
+    
+      conpile_nrpe_nossl || exit
+
+    fi
+fi
+}
+
+#==============================================
+# INSTALL NRPE
+#==============================================
+
+while true; do
+    read -p "Compile with ssl ?" yn
+    case $yn in
+        [Yy]* ) nrpe_ssl; break;;
+        [Nn]* ) nrpe_nossl; break;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
 
 #==============================================
 # ADD IP IN NAGIOS_PATH
