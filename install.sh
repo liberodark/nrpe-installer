@@ -146,7 +146,7 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
 
       conpile_nrpe_nossl || exit
     
-    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
+    elif [[ "$distribution" =~ .Debian || "$distribution" =~ .Ubuntu || "$distribution" =~ .Deepin ]]; then
       apt-get update &> /dev/null
       apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make --force-yes &> /dev/null
     
