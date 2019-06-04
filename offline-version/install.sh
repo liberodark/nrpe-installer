@@ -164,7 +164,7 @@ while true; do
     read -p "Compile with ssl ?" yn
     case $yn in
         [Yy]* ) nrpe_ssl; break;;
-        [Nn]* ) nrpe_nossl;;
+        [Nn]* ) nrpe_nossl; break;;
         * ) echo "Please answer yes or no.";;
     esac
 done
