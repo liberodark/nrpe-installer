@@ -1,12 +1,21 @@
 # NRPE Installer
 Nagios NRPE Installer
 
-## How to use :
+## How to use for new OS :
 
 Copy and Past in your terminal :
 
 ```bash
 git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && chmod +x install.sh; ./install.sh
+```
+
+
+## How to use for older OS :
+
+Copy and Past in your terminal :
+
+```bash
+git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && chmod +x install-old.sh; ./install-old.sh
 ```
 
 ## Compile plugins :
@@ -61,13 +70,21 @@ https://www.centreon.com/
 https://www.op5.com/
 
 
-## Linux Compatibility :
+## Linux Compatibility : (Systemd work 100%)
 
 - Debian 7.x / 8.x / 9.x
-- Ubuntu 18.04
+- Ubuntu 16.04 / 19.10
 - Centos 6.x / 7.x
 - Red Hat 6.x / 7.x / 8.x
 - Fedora 15 / 30
+
+## Linux Compatibility : (SysV / Upstart work 88%)
+
+- Debian 6.x
+- Ubuntu 14.04
+- Centos 5.x
+- Red Hat 5.x
+- Fedora 14
 
 # Troubleshouting Debian
 
