@@ -1,7 +1,7 @@
 # NRPE Installer
 Nagios NRPE Installer
 
-## How to use for new OS :
+## How to use for Systemd OS : (If you do not know looked linux compatibility)
 
 Copy and Past in your terminal :
 
@@ -10,12 +10,12 @@ git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && c
 ```
 
 
-## How to use for older OS :
+## How to use for SysV / Upstart OS : (If you do not know looked linux compatibility)
 
 Copy and Past in your terminal :
 
 ```bash
-git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && chmod +x install-old.sh; ./install-old.sh
+git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && chmod +x install-debug-old.sh; ./install-debug-old.sh
 ```
 
 ## Compile plugins :
