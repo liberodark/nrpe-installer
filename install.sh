@@ -62,21 +62,21 @@ command[proc_syslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ 
 command[proc_rsyslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$'
 
 compile_nrpe_ssl(){
-      tar xzf nrpe.tar.gz &> /dev/null
+      tar xzf nrpe.tar.gz
       pushd nrpe-nrpe-3.2.1/ || exit
-      ./configure --enable-command-args &> /dev/null
-      make all &> /dev/null
-      make install-groups-users &> /dev/null
-      make install &> /dev/null
-      make install-config &> /dev/null
+      ./configure --enable-command-args
+      make all
+      make install-groups-users
+      make install
+      make install-config
       echo >> /etc/services
       echo '# Nagios services' >> /etc/services
       echo 'nrpe    5666/tcp' >> /etc/services
-      make install-init &> /dev/null
+      make install-init
       popd || exit
 
       pushd plugins/ || exit
-      mv * $nrpe_plugin &> /dev/null
+      mv * $nrpe_plugin
       popd || exit
 
       pushd $nrpe_plugin || exit
@@ -85,21 +85,21 @@ compile_nrpe_ssl(){
       }
 
 conpile_nrpe_nossl(){
-      tar xzf nrpe.tar.gz &> /dev/null
+      tar xzf nrpe.tar.gz
       pushd nrpe-nrpe-3.2.1/ || exit
-      ./configure --enable-command-args --disable-ssl &> /dev/null
-      make all &> /dev/null
-      make install-groups-users &> /dev/null
-      make install &> /dev/null
-      make install-config &> /dev/null
+      ./configure --enable-command-args --disable-ssl
+      make all
+      make install-groups-users
+      make install
+      make install-config
       echo >> /etc/services
       echo '# Nagios services' >> /etc/services
       echo 'nrpe    5666/tcp' >> /etc/services
-      make install-init &> /dev/null
+      make install-init
       popd || exit
 
       pushd plugins/ || exit
-      mv * $nrpe_plugin &> /dev/null
+      mv * $nrpe_plugin
       popd || exit
 
       pushd $nrpe_plugin || exit
@@ -113,23 +113,23 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
 
   # Check OS & nrpe
 
-  which nrpe &> /dev/null
+  which nrpe
 
   if [ $? != 0 ]; then
 
     if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red\ Hat || "$distribution" =~ .Fedora || "$distribution" =~ .Suse ]]; then
-      yum install -y make gcc glibc glibc-common openssl openssl-devel &> /dev/null
+      yum install -y make gcc glibc glibc-common openssl openssl-devel
 
       compile_nrpe_ssl || exit
     
     elif [[ "$distribution" =~ .Debian || "$distribution" =~ .Ubuntu || "$distribution" =~ .Deepin ]]; then
-      apt-get update &> /dev/null
-      apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl --force-yes &> /dev/null
+      apt-get update
+      apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev libssl-dev openssl --force-yes
     
       compile_nrpe_ssl || exit
       
     elif [[ "$distribution" =~ .Manjaro || "$distribution" =~ .Arch\ Linux ]]; then
-      pacman -Su make autoconf automake gcc glibc libmcrypt make openssl --no-confirm &> /dev/null
+      pacman -S make autoconf automake gcc glibc libmcrypt  openssl --noconfirm
     
       compile_nrpe_ssl || exit
 
@@ -142,23 +142,23 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
 
   # Check OS & nrpe
 
-  which nrpe &> /dev/null
+  which nrpe
 
   if [ $? != 0 ]; then
 
     if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red\ Hat || "$distribution" =~ .Fedora || "$distribution" =~ .Suse  ]]; then
-      yum install -y make gcc glibc glibc-common &> /dev/null
+      yum install -y make gcc glibc glibc-common
 
       conpile_nrpe_nossl || exit
     
     elif [[ "$distribution" =~ .Debian || "$distribution" =~ .Ubuntu || "$distribution" =~ .Deepin ]]; then
-      apt-get update &> /dev/null
-      apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make --force-yes &> /dev/null
+      apt-get update
+      apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make --force-yes
     
       conpile_nrpe_nossl || exit
       
     elif [[ "$distribution" =~ .Manjaro || "$distribution" =~ .Arch\ Linux ]]; then
-      pacman -Su make autoconf automake gcc glibc libmcrypt make --no-confirm &> /dev/null
+      pacman -S make autoconf automake gcc glibc libmcrypt --noconfirm
     
       conpile_nrpe_nossl || exit
 
