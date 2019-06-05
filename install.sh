@@ -36,31 +36,31 @@ nrpe_plugin=/usr/local/nagios/libexec/
 test ! -e "$nrpe_conf" || echo "This path already contains a folder" | exit
 test ! -e "$nrpe_plugin" || echo "This path already contains a folder" | exit
 
-plugins_conf="
-################################################################################\n 
-#\n
-# nrpe command configuration file\n
-#\n
-# COMMAND DEFINITIONS\n
-# Syntax:\n
-#       command[<command_name>]=<command_line>\n
-#\n
-command[service]=/usr/local/nagios/libexec/check_service.sh -o linux -t "systemctl list-units --state=failed"\n
-command[memory]=/usr/local/nagios/libexec/check_mem -w $ARG1$ -c $ARG2$\n
-command[cpu]=/usr/local/nagios/libexec/check_cpu -w $ARG1$ -c $ARG2$\n
-command[users]=/usr/local/nagios/libexec/check_users -w $ARG1$ -c $ARG2$\n
-command[load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$\n
-command[check_load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$\n
-command[swap]=/usr/local/nagios/libexec/check_swap -w $ARG1$ -c $ARG2$\n
-command[disk]=/usr/local/nagios/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
-command[usr_disk]=/usr/local/nagios/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
-command[var_disk]=/usr/local/nagios/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
-command[zombie_procs]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -s Z\n
-command[total_procs]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$\n
-command[proc_named]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
-command[proc_crond]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
-command[proc_syslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
-command[proc_rsyslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$"
+plugins_conf='
+################################################################################ 
+#
+# nrpe command configuration file
+#
+# COMMAND DEFINITIONS
+# Syntax:
+#       command[<command_name>]=<command_line>
+#
+command[service]=/usr/local/nagios/libexec/check_service.sh -o linux -t "systemctl list-units --state=failed"
+command[memory]=/usr/local/nagios/libexec/check_mem -w $ARG1$ -c $ARG2$
+command[cpu]=/usr/local/nagios/libexec/check_cpu -w $ARG1$ -c $ARG2$
+command[users]=/usr/local/nagios/libexec/check_users -w $ARG1$ -c $ARG2$
+command[load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$
+command[check_load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$
+command[swap]=/usr/local/nagios/libexec/check_swap -w $ARG1$ -c $ARG2$
+command[disk]=/usr/local/nagios/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m
+command[usr_disk]=/usr/local/nagios/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m
+command[var_disk]=/usr/local/nagios/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m
+command[zombie_procs]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -s Z
+command[total_procs]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$
+command[proc_named]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$
+command[proc_crond]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$
+command[proc_syslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$
+command[proc_rsyslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$'
 
 compile_nrpe_ssl(){
       tar xzf nrpe.tar.gz &> /dev/null
@@ -215,5 +215,5 @@ fi
 #==============================================
 echo "Start & Enable Nagios NRPE Server Service"
 
-systemctl enable nrpe 
+systemctl enable nrpe
 systemctl restart nrpe
