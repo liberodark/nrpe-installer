@@ -117,7 +117,7 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
       compile_nrpe_ssl || exit
     
     elif [[ "$distribution" =~ .Debian || "$distribution" =~ .Ubuntu || "$distribution" =~ .Deepin ]]; then
-      apt-get update
+      apt-get update &> /dev/null
       apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev libssl-dev openssl --force-yes &> /dev/null
     
       compile_nrpe_ssl || exit
@@ -144,7 +144,7 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
       compile_nrpe_nossl || exit
     
     elif [[ "$distribution" =~ .Debian || "$distribution" =~ .Ubuntu || "$distribution" =~ .Deepin ]]; then
-      apt-get update
+      apt-get update &> /dev/null
       apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make --force-yes &> /dev/null
     
       compile_nrpe_nossl || exit
