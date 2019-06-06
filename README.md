@@ -1,5 +1,11 @@
 # NRPE Installer
-Nagios NRPE Installer
+
+Nagios NRPE Installer is a script for install NRPE with a same configaration on most linux very easily.
+
+And use custom and official nagios plugins :  https://github.com/nagios-plugins/nagios-plugins/
+
+This product is for help supervision of yours servers or pc.
+
 
 ### How to use for Systemd OS :
 
