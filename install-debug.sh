@@ -5,7 +5,7 @@
 # Thanks : frju365, Booti386
 # License: GNU GPLv3
 
-version="0.8.7"
+version="0.8.8"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -20,7 +20,7 @@ if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
 #=================================================
 
 echo "What is your server ip ?"
-read ip
+read -r ip
 
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST AND VAR
@@ -36,29 +36,30 @@ nrpe_plugin=/usr/local/nagios/libexec/
 test ! -e "$nrpe_conf" || echo "This path already contains a folder" | exit
 test ! -e "$nrpe_plugin" || echo "This path already contains a folder" | exit
 
-plugins_conf='################################################################################\n 
-#\n
-# nrpe command configuration file\n
-#\n
-# COMMAND DEFINITIONS\n
-# Syntax:\n
-#       command[<command_name>]=<command_line>\n
-#\n
-command[service]=/usr/local/nagios/libexec/check_service.sh -o linux -t "systemctl list-units --state=failed"\n
-command[memory]=/usr/local/nagios/libexec/check_mem -w $ARG1$ -c $ARG2$\n
-command[cpu]=/usr/local/nagios/libexec/check_cpu -w $ARG1$ -c $ARG2$\n
-command[users]=/usr/local/nagios/libexec/check_users -w $ARG1$ -c $ARG2$\n
-command[load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$\n
-command[check_load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$\n
-command[swap]=/usr/local/nagios/libexec/check_swap -w $ARG1$ -c $ARG2$\n
-command[disk]=/usr/local/nagios/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
-command[usr_disk]=/usr/local/nagios/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
-command[var_disk]=/usr/local/nagios/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m\n
-command[zombie_procs]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -s Z\n
-command[total_procs]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$\n
-command[proc_named]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
-command[proc_crond]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
-command[proc_syslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$\n
+plugins_conf='
+################################################################################ 
+#
+# nrpe command configuration file
+#
+# COMMAND DEFINITIONS
+# Syntax:
+#       command[<command_name>]=<command_line>
+#
+command[service]=/usr/local/nagios/libexec/check_service.sh -o linux -t "systemctl list-units --state=failed"
+command[memory]=/usr/local/nagios/libexec/check_mem -w $ARG1$ -c $ARG2$
+command[cpu]=/usr/local/nagios/libexec/check_cpu -w $ARG1$ -c $ARG2$
+command[users]=/usr/local/nagios/libexec/check_users -w $ARG1$ -c $ARG2$
+command[load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$
+command[check_load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$
+command[swap]=/usr/local/nagios/libexec/check_swap -w $ARG1$ -c $ARG2$
+command[disk]=/usr/local/nagios/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m
+command[usr_disk]=/usr/local/nagios/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m
+command[var_disk]=/usr/local/nagios/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$ -m
+command[zombie_procs]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -s Z
+command[total_procs]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$
+command[proc_named]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$
+command[proc_crond]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$
+command[proc_syslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$
 command[proc_rsyslogd]=/usr/local/nagios/libexec/check_procs -w $ARG1$ -c $ARG2$ -C $ARG3$'
 
 compile_nrpe_ssl(){
@@ -69,22 +70,20 @@ compile_nrpe_ssl(){
       make install-groups-users
       make install
       make install-config
-      echo >> /etc/services
+      #echo >> /etc/services
       echo '# Nagios services' >> /etc/services
       echo 'nrpe    5666/tcp' >> /etc/services
       make install-init
       popd || exit
 
-      pushd plugins/ || exit
-      mv * $nrpe_plugin
-      popd || exit
+      mv ./plugins/check* "$nrpe_plugin"
 
       pushd $nrpe_plugin || exit
-      chmod +x * && chown nagios:nagios *
-      echo -e "$plugins_conf" >> $nrpe_conf
+      chmod +x ./check* && chown nagios:nagios ./check*
+      echo -e "$plugins_conf" >> "$nrpe_conf"
       }
 
-conpile_nrpe_nossl(){
+compile_nrpe_nossl(){
       tar xzf nrpe.tar.gz
       pushd nrpe-nrpe-3.2.1/ || exit
       ./configure --enable-command-args --disable-ssl
@@ -92,20 +91,17 @@ conpile_nrpe_nossl(){
       make install-groups-users
       make install
       make install-config
-      echo >> /etc/services
+      #echo >> /etc/services
       echo '# Nagios services' >> /etc/services
       echo 'nrpe    5666/tcp' >> /etc/services
       make install-init
       popd || exit
 
-      pushd plugins/ || exit
-      mv * $nrpe_plugin
-      popd || exit
+      mv ./plugins/check* "$nrpe_plugin"
 
       pushd $nrpe_plugin || exit
-      chmod +x * && chown nagios:nagios *
-      echo -e "$plugins_conf" >> $nrpe_conf
-      popd || exit
+      chmod +x ./check* && chown nagios:nagios ./check*
+      echo -e "$plugins_conf" >> "$nrpe_conf"
       }
 
 nrpe_ssl(){
@@ -113,18 +109,21 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
 
   # Check OS & nrpe
 
-  which nrpe
+  if ! command -v nrpe; then
 
-  if [ $? != 0 ]; then
-
-    if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
+    if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red\ Hat || "$distribution" =~ .Fedora || "$distribution" =~ .Suse ]]; then
       yum install -y make gcc glibc glibc-common openssl openssl-devel
 
       compile_nrpe_ssl || exit
     
-    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
+    elif [[ "$distribution" =~ .Debian || "$distribution" =~ .Ubuntu || "$distribution" =~ .Deepin ]]; then
       apt-get update
-      apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make libssl-dev openssl --force-yes
+      apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev libssl-dev openssl --force-yes
+    
+      compile_nrpe_ssl || exit
+      
+    elif [[ "$distribution" =~ .Manjaro || "$distribution" =~ .Arch\ Linux ]]; then
+      pacman -S make autoconf automake gcc glibc libmcrypt  openssl --noconfirm
     
       compile_nrpe_ssl || exit
 
@@ -137,20 +136,23 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
 
   # Check OS & nrpe
 
-  which nrpe
+  if ! command -v nrpe; then
 
-  if [ $? != 0 ]; then
-
-    if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
+    if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red\ Hat || "$distribution" =~ .Fedora || "$distribution" =~ .Suse  ]]; then
       yum install -y make gcc glibc glibc-common
 
-      conpile_nrpe_nossl || exit
+      compile_nrpe_nossl || exit
     
-    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
+    elif [[ "$distribution" =~ .Debian || "$distribution" =~ .Ubuntu || "$distribution" =~ .Deepin ]]; then
       apt-get update
       apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make --force-yes
     
-      conpile_nrpe_nossl || exit
+      compile_nrpe_nossl || exit
+      
+    elif [[ "$distribution" =~ .Manjaro || "$distribution" =~ .Arch\ Linux ]]; then
+      pacman -S make autoconf automake gcc glibc libmcrypt --noconfirm
+    
+      compile_nrpe_nossl || exit
 
     fi
 fi
@@ -161,7 +163,7 @@ fi
 #==============================================
 
 while true; do
-    read -p "Compile with ssl ?" yn
+    read -r -p "Compile with ssl ?" yn
     case $yn in
         [Yy]* ) nrpe_ssl; break;;
         [Nn]* ) nrpe_nossl; break;;
@@ -213,5 +215,5 @@ fi
 #==============================================
 echo "Start & Enable Nagios NRPE Server Service"
 
-systemctl enable nrpe 
+systemctl enable nrpe
 systemctl restart nrpe
