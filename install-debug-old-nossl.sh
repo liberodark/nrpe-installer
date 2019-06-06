@@ -26,7 +26,7 @@ read ip
 # RETRIEVE ARGUMENTS FROM THE MANIFEST AND VAR
 #=================================================
 
-distribution=$(cat /etc/*release | head -n +1 | awk '{print $1}')
+distribution=$(cat /etc/*release | grep "PRETTY_NAME" | sed 's/PRETTY_NAME=//g' | sed 's/["]//g' | awk '{print $1}')
 distribution_old=$(cat /etc/issue | head -n +1 | awk '{print $1}')
 
 nrpe_conf=/usr/local/nagios/etc/nrpe.cfg
