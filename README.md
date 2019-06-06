@@ -44,7 +44,7 @@ tar -xvf nrpe.tar.gz && sudo rm nrpe.tar.gz && semodule -i nrpe.pp
 
 ```
 command[service]=/usr/local/nagios/libexec/check_service.sh -o linux -t "systemctl list-units --state=failed"
-command[memory]=/usr/local/nagios/libexec/check_mem -w 70% -c 90%
+command[memory]=/usr/local/nagios/libexec/check_mem -w 70 -c 90
 command[cpu]=/usr/local/nagios/libexec/check_cpu -w 70 -c 90
 command[users]=/usr/local/nagios/libexec/check_users -w 5 -c 10
 command[load]=/usr/local/nagios/libexec/check_load -w 15,10,5 -c 30,25,20
