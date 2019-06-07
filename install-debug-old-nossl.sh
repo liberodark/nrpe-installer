@@ -73,7 +73,7 @@ echo "Install Nagios NRPE Server ($distribution)"
 
   if [ $? != 0 ]; then
 
-    if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
+    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red || "$distribution" = RedHat || "$distribution" = Fedora || "$distribution" = Fedora || "$distribution" = Suse ]]; then
       yum install -y make gcc glibc glibc-common
       tar xzf nrpe.tar.gz
 
@@ -106,7 +106,7 @@ echo "Install Nagios NRPE Server ($distribution)"
       popd || exit
       echo -e "$plugins_conf" >> $nrpe_conf 
     
-    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
+    elif [[ "$distribution" = Debian || "$distribution" = Debian || "$distribution" = Ubuntu || "$distribution" = Ubuntu ]]; then
       apt-get update 
       apt-get install -y autoconf automake gcc libc6 libmcrypt-dev make --force-yes 
       tar xzf nrpe.tar.gz 
@@ -157,7 +157,7 @@ echo "Open Port NRPE Server"
 
   if [ $? != 1 ]; then
     
-    if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
+    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red || "$distribution" = RedHat || "$distribution" = Fedora || "$distribution" = Fedora || "$distribution" = Suse ]]; then
       firewall-cmd --permanent --zone=public --add-port=$port/tcp 
       firewall-cmd --reload
       #iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
@@ -165,7 +165,7 @@ echo "Open Port NRPE Server"
       #sudo chkconfig iptables on
       #sudo service iptables save
     
-    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
+    elif [[ "$distribution" = Debian || "$distribution" = Debian || "$distribution" = Ubuntu || "$distribution" = Ubuntu ]]; then
       #apt-get install ufw -y
       #ufw default deny
       #ufw default allow outgoing
@@ -187,11 +187,11 @@ echo "Start & Enable Nagios NRPE Server Service"
 
   if [ $? != 1 ]; then
     
-    if [[ "$distribution" =~ .CentOS || "$distribution" = CentOS || "$distribution" =~ .Red || "$distribution" = RedHat || "$distribution" =~ .Fedora || "$distribution" = Fedora || "$distribution" =~ .Suse ]]; then
+    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red || "$distribution" = RedHat || "$distribution" = Fedora || "$distribution" = Fedora || "$distribution" = Suse ]]; then
       /sbin/service nrpe restart
       
     
-    elif [[ "$distribution" =~ .Debian || "$distribution" = Debian || "$distribution" =~ .Ubuntu || "$distribution" = Ubuntu ]]; then
+    elif [[ "$distribution" = Debian || "$distribution" = Debian || "$distribution" = Ubuntu || "$distribution" = Ubuntu ]]; then
       service nrpe start 
       
     fi
