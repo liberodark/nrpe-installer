@@ -82,6 +82,7 @@ https://www.op5.com/
 - Deepin 15.x
 - Ubuntu 16.04 / 19.10
 - Centos 7.x / 8.x
+- Oracle 7.x
 - Red Hat 7.x / 8.x
 - Fedora 15 / 30
 
