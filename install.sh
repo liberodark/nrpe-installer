@@ -2,7 +2,7 @@
 #
 # About: Install NRPE automatically
 # Author: liberodark
-# Thanks : frju365, Booti386
+# Thanks : frju365, Booti386, erdnaxeli
 # License: GNU GPLv3
 
 version="0.8.8"
@@ -16,13 +16,6 @@ echo "Welcome on NRPE Install Script $version"
 if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
 
 #=================================================
-# ASK
-#=================================================
-
-echo "What is your server ip ?"
-read -r ip
-
-#=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST AND VAR
 #=================================================
 
@@ -33,8 +26,16 @@ nrpe_conf=/usr/local/nagios/etc/nrpe.cfg
 port=5666
 nrpe_plugin=/usr/local/nagios/libexec/
 
-test ! -e "$nrpe_conf" || echo "This path already contains a folder" & exit
-test ! -e "$nrpe_plugin" || echo "This path already contains a folder" & exit
+
+if [ -e "$nrpe_conf" ]; then
+echo "Error NRPE configuration already is installed"
+exit
+fi
+
+if [ -e "$nrpe_plugin" ]; then
+echo "Error NRPE plugin already is installed"
+exit
+fi
 
 plugins_conf='
 ################################################################################ 
@@ -157,6 +158,13 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
     fi
 fi
 }
+
+#=================================================
+# ASK
+#=================================================
+
+echo "What is your server ip ?"
+read -r ip
 
 #==============================================
 # INSTALL NRPE
