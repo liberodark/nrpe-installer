@@ -112,7 +112,7 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
 
   if ! command -v nrpe &> /dev/null; then
 
-    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red\ Hat || "$distribution" = Fedora || "$distribution" = Suse ]]; then
+    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red\ Hat || "$distribution" = Fedora || "$distribution" = Suse || "$distribution" = Oracle ]]; then
       yum install -y make gcc glibc glibc-common openssl openssl-devel &> /dev/null
 
       compile_nrpe_ssl || exit
@@ -139,7 +139,7 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
 
   if ! command -v nrpe &> /dev/null; then
 
-    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red\ Hat || "$distribution" = Fedora || "$distribution" = Suse  ]]; then
+    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red\ Hat || "$distribution" = Fedora || "$distribution" = Suse || "$distribution" = Oracle ]]; then
       yum install -y make gcc glibc glibc-common &> /dev/null
 
       compile_nrpe_nossl || exit
@@ -197,7 +197,7 @@ echo "Open Port NRPE Server"
 
   if [ $? != 1 ]; then
     
-    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red || "$distribution" = RedHat || "$distribution" = Fedora || "$distribution" = Fedora || "$distribution" = Suse ]]; then
+    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red || "$distribution" = RedHat || "$distribution" = Fedora || "$distribution" = Fedora || "$distribution" = Suse || "$distribution" = Oracle ]]; then
       firewall-cmd --permanent --zone=public --add-port=$port/tcp 
       firewall-cmd --reload
       #iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
