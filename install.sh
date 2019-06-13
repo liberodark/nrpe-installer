@@ -33,8 +33,8 @@ nrpe_conf=/usr/local/nagios/etc/nrpe.cfg
 port=5666
 nrpe_plugin=/usr/local/nagios/libexec/
 
-test ! -e "$nrpe_conf" || echo "This path already contains a folder" | exit
-test ! -e "$nrpe_plugin" || echo "This path already contains a folder" | exit
+test ! -e "$nrpe_conf" || echo "This path already contains a folder" & exit
+test ! -e "$nrpe_plugin" || echo "This path already contains a folder" & exit
 
 plugins_conf='
 ################################################################################ 
