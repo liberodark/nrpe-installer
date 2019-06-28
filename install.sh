@@ -5,7 +5,7 @@
 # Thanks : frju365, Booti386, erdnaxeli
 # License: GNU GPLv3
 
-version="0.8.8"
+version="0.8.9"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -123,6 +123,11 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
     
       compile_nrpe_ssl || exit
       
+    elif [[ "$distribution" = Clear ]]; then
+      swupd bundle-add make c-basic-legacy openssl ansible &> /dev/null
+    
+      compile_nrpe_ssl || exit
+      
     elif [[ "$distribution" = Manjaro || "$distribution" = Arch\ Linux ]]; then
       pacman -S make autoconf automake gcc glibc libmcrypt  openssl --noconfirm &> /dev/null
     
@@ -147,6 +152,11 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
     elif [[ "$distribution" = Debian || "$distribution" = Ubuntu || "$distribution" = Deepin ]]; then
       apt-get update &> /dev/null
       apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make --force-yes &> /dev/null
+    
+      compile_nrpe_nossl || exit
+      
+    elif [[ "$distribution" = Clear ]]; then
+      swupd bundle-add make c-basic-legacy openssl ansible &> /dev/null
     
       compile_nrpe_nossl || exit
       
@@ -197,7 +207,7 @@ echo "Open Port NRPE Server"
 
   if [ $? != 1 ]; then
     
-    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red || "$distribution" = RedHat || "$distribution" = Fedora || "$distribution" = Fedora || "$distribution" = Suse || "$distribution" = Oracle ]]; then
+    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red || "$distribution" = RedHat || "$distribution" = Fedora || "$distribution" = Fedora || "$distribution" = Suse || "$distribution" = Oracle || "$distribution" = Clear ]]; then
       firewall-cmd --permanent --zone=public --add-port=$port/tcp 
       firewall-cmd --reload
       #iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
