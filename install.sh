@@ -124,7 +124,7 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
       compile_nrpe_ssl || exit
       
     elif [[ "$distribution" = Clear ]]; then
-      swupd bundle-add make c-basic-legacy openssl ansible &> /dev/null
+      swupd bundle-add make c-basic-legacy openssl devpkg-openssl ansible &> /dev/null
     
       compile_nrpe_ssl || exit
       
