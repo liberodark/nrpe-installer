@@ -85,6 +85,7 @@ https://www.op5.com/
 - Oracle 7.x
 - Red Hat 7.x / 8.x
 - Fedora 15 / 30
+- Clear Linux 30110
 
 ### Linux Compatibility : (SysV / Upstart)
 
