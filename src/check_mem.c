@@ -121,7 +121,7 @@ int main(int argc, char **argv)
 		result = 1;
 	}
 
-	printf("MEMORY %s - Used = %.2f%% | Total: '%" PRIu64 "' MB Used: '%" PRIu64 "' MB Free: '%" PRIu64 "' MB\n", panic_str, mem_pct, stats.total_kB / 1024, stats.used_kB / 1024, stats.avail_kB / 1024);
+	printf("MEMORY %s - Used = %.2f%% | 'Total'=%" PRIu64 "MB 'Used'=%" PRIu64 "MB 'Free'=%" PRIu64 "MB\n", panic_str, mem_pct, stats.total_kB / 1024, stats.used_kB / 1024, stats.avail_kB / 1024);
 
 	return result;
 }
