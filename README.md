@@ -28,6 +28,7 @@ git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && c
 
 ```
 gcc check_cpu.c -o check_cpu -std=gnu99
+gcc -g check_logs.c -o check_logs -lcrypto -llzma
 ```
 
 ### SELinux :
