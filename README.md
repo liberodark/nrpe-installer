@@ -47,6 +47,7 @@ sudo yum localinstall openssl11-libs-1.1.0i-1.el7.x86_64.rpm
 sudo yum localinstall openssl11-devel-1.1.0i-1.el7.x86_64.rpm
 sudo rm /usr/lib64/libcrypto.so
 sudo ln -s /usr/lib64/libcrypto.so.1.1.0i /usr/lib64/libcrypto.so
+sudo rm /usr/lib64/libssl.so
 sudo ln -s /usr/lib64/libssl.so.1.1.0i /usr/lib64/libssl.so
 ```
 
