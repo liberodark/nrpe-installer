@@ -34,7 +34,7 @@ gcc -g check_logs.c -o check_logs -lcrypto -llzma -std=gnu99
 ### How to work check_logs plugin :
 
 More information :
-https://github.com/liberodark/nrpe-installer/wiki/How-to-work-check_logs-plugin
+https://github.com/liberodark/nrpe-installer/wiki/Plugin-check_logs
 
 
 ### SELinux :
