@@ -28,19 +28,30 @@ git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && c
 
 ```
 gcc check_cpu.c -o check_cpu -std=gnu99
-gcc -g check_logs.c -o check_logs -lcrypto -llzma
+gcc -g check_logs.c -o check_logs -lcrypto -llzma -std=gnu99
 ```
 
-### Check logs :
+### How to work check_logs plugin :
 
-Need to install on centos 7 
+For Centos 7 need to install : 
 
 https://centos.pkgs.org/7/okey-x86_64/crypto-policies-20170816-1.git2618a6c.el7.noarch.rpm.html
 
 https://centos.pkgs.org/7/okey-x86_64/openssl11-libs-1.1.0i-1.el7.x86_64.rpm.html
 
+https://centos.pkgs.org/7/okey-x86_64/openssl11-devel-1.1.0i-1.el7.x86_64.rpm.html
+
 ```
+sudo yum localinstall crypto-policies-20170816-1.git2618a6c.el7.noarch.rpm
+sudo yum localinstall openssl11-libs-1.1.0i-1.el7.x86_64.rpm
+sudo yum localinstall openssl11-devel-1.1.0i-1.el7.x86_64.rpm
+sudo rm /usr/lib64/libcrypto.so
+sudo ln -s /usr/lib64/libcrypto.so.1.1.0i /usr/lib64/libcrypto.so
+sudo ln -s /usr/lib64/libssl.so.1.1.0i /usr/lib64/libssl.so
 ```
+
+After this now plugin work and you have possibility to compile from source.
+
 
 ### SELinux :
 
