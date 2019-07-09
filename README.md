@@ -155,5 +155,5 @@ apt-get update && apt-get install apt -t jessie -y
 
 Upgrade your OS (is important to stop all services ex: service apache2 stop)
 ```
-apt-get dist-upgrade -y
+apt dist-upgrade -y
 ```
