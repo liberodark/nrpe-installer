@@ -33,72 +33,8 @@ gcc -g check_logs.c -o check_logs -lcrypto -llzma -std=gnu99
 
 ### How to work check_logs plugin :
 
-Fonctionality :
-
-```
-./check_logs 
-
--encrypt "for encrypt"
--decrypt "for decrypt"
--log "log location"
--path "folder destination"
--time "define time for backup"
--lock "for create lock file"
-next ...
-```
-
-Exemple :
-
-
-Compress and Backup logs
-```
-./check_logs -log /var/log/ -path /home/pc/logs/
-```
-
-Encrypt / Compress and Backup logs
-```
-./check_logs -encrypt linux -log /var/log/ -path /home/pc/logs/
-```
-
-Compress and Backup specific log
-```
-./check_logs -log /var/log/xorg.log -path /home/pc/logs/
-```
-
-Encrypt / Compress and Backup specific log
-```
-./check_logs -encrypt linux -log /var/log/xorg.log -path /home/pc/logs/
-```
-
-Decrypt encrypted logs folder
-```
-./check_logs -decrypt linux -path /home/pc/logs/
-```
-
-Decrypt specific encrypted log
-```
-./check_logs -decrypt linux -path /home/pc/logs/xorg.0-2019-07-09-15-30-38.log.xz.aes
-```
-
-For Centos 7 need to install : 
-
-https://centos.pkgs.org/7/okey-x86_64/crypto-policies-20170816-1.git2618a6c.el7.noarch.rpm.html
-
-https://centos.pkgs.org/7/okey-x86_64/openssl11-libs-1.1.0i-1.el7.x86_64.rpm.html
-
-https://centos.pkgs.org/7/okey-x86_64/openssl11-devel-1.1.0i-1.el7.x86_64.rpm.html
-
-```
-sudo yum localinstall crypto-policies-20170816-1.git2618a6c.el7.noarch.rpm
-sudo yum localinstall openssl11-libs-1.1.0i-1.el7.x86_64.rpm
-sudo yum localinstall openssl11-devel-1.1.0i-1.el7.x86_64.rpm
-sudo rm /usr/lib64/libcrypto.so
-sudo ln -s /usr/lib64/libcrypto.so.1.1.0i /usr/lib64/libcrypto.so
-sudo rm /usr/lib64/libssl.so
-sudo ln -s /usr/lib64/libssl.so.1.1.0i /usr/lib64/libssl.so
-```
-
-After this now plugin work and you have possibility to compile from source.
+More information :
+https://github.com/liberodark/nrpe-installer/wiki/How-to-work-check_logs-plugin
 
 
 ### SELinux :
