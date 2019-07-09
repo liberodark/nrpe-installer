@@ -31,6 +31,17 @@ gcc check_cpu.c -o check_cpu -std=gnu99
 gcc -g check_logs.c -o check_logs -lcrypto -llzma
 ```
 
+### Check logs :
+
+Need to install on centos 7 
+
+https://centos.pkgs.org/7/okey-x86_64/crypto-policies-20170816-1.git2618a6c.el7.noarch.rpm.html
+
+https://centos.pkgs.org/7/okey-x86_64/openssl11-libs-1.1.0i-1.el7.x86_64.rpm.html
+
+```
+```
+
 ### SELinux :
 
 
