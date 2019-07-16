@@ -55,6 +55,14 @@ enum opt_type
 	OPT_TYPE_CRON
 };
 
+struct opt_data_cron
+{
+	int M;
+	int H;
+	int d;
+	int m;
+};
+
 struct opt
 {
 	enum opt_type type;
@@ -63,14 +71,7 @@ struct opt
 		int as_int;
 		const char *as_str;
 		time_t as_duration;
-		struct
-		{
-			int M;
-			int H;
-			int d;
-			int m;
-			int w;
-		} as_cron;
+		struct opt_data_cron as_cron;
 	} data;
 };
 
@@ -219,17 +220,16 @@ int parse_opts(int argc, char **argv, size_t opt_count, struct opt *opts)
 			case OPT_TYPE_CRON:
 			{
 				const char *hardcoded[] = {
-					"@hourly",   "0 * * * *",
-					"@daily",    "0 0 * * *",
-					"@midnight", "0 0 * * *",
-					"@weekly",   "0 0 * * 0",
-					"@monthly",  "0 0 1 * *",
-					"@annually", "0 0 1 1 *"
-					"@yearly",   "0 0 1 1 *"
+					"@hourly",   "0 * * *",
+					"@daily",    "0 0 * *",
+					"@midnight", "0 0 * *",
+					"@monthly",  "0 0 1 *",
+					"@annually", "0 0 1 1"
+					"@yearly",   "0 0 1 1"
 				};
 				const char *p;
 				char *endp;
-				int params[5];
+				int params[4];
 				long int n;
 
 				for (size_t j = 0; j < ARRAY_SIZE(hardcoded); j += 2)
@@ -243,7 +243,7 @@ int parse_opts(int argc, char **argv, size_t opt_count, struct opt *opts)
 
 				p = opt->data.as_str;
 
-				for (size_t j = 0; j < 5; j++)
+				for (size_t j = 0; j < ARRAY_SIZE(params); j++)
 				{
 					if (p != opt->data.as_str
 							&& !isspace(*p))
@@ -255,7 +255,7 @@ int parse_opts(int argc, char **argv, size_t opt_count, struct opt *opts)
 
 					if (*p == '*')
 					{
-						params[j] = INT_MAX;
+						params[j] = -1;
 						p++;
 						continue;
 					}
@@ -272,18 +272,16 @@ int parse_opts(int argc, char **argv, size_t opt_count, struct opt *opts)
 				if (*p)
 					return -1;
 
-				if ((params[0] != INT_MAX && params[0] > 59)
-						|| (params[1] != INT_MAX && params[1] > 23)
-						|| (params[2] != INT_MAX && (params[2] < 1 || params[2] > 31))
-						|| (params[3] != INT_MAX && (params[3] < 1 || params[3] > 12))
-						|| (params[4] != INT_MAX && params[4] > 6))
+				if ((params[0] != -1 && params[0] > 59)
+						|| (params[1] != -1 && params[1] > 23)
+						|| (params[2] != -1 && (params[2] < 1 || params[2] > 31))
+						|| (params[3] != -1 && (params[3] < 1 || params[3] > 12)))
 					return -1;
 
 				opt->data.as_cron.M = params[0];
 				opt->data.as_cron.H = params[1];
 				opt->data.as_cron.d = params[2];
 				opt->data.as_cron.m = params[3];
-				opt->data.as_cron.w = params[4];
 				break;
 			}
 		}
@@ -320,6 +318,28 @@ const char *get_opt_str(struct opt *opts, enum opt_id id)
 		return NULL;
 
 	return opts[id].data.as_str;
+}
+
+time_t get_opt_duration(struct opt *opts, enum opt_id id)
+{
+	if (id >= OPT_COUNT)
+		return -1;
+
+	if (opts[id].type != OPT_TYPE_DURATION)
+		return -1;
+
+	return opts[id].data.as_duration;
+}
+
+struct opt_data_cron *get_opt_cron(struct opt *opts, enum opt_id id)
+{
+	if (id >= OPT_COUNT)
+		return NULL;
+
+	if (opts[id].type != OPT_TYPE_CRON)
+		return NULL;
+
+	return &opts[id].data.as_cron;
 }
 
 enum crypto_pipeline_id
@@ -855,18 +875,16 @@ int print_usage(int argc, char **argv)
 			"(e.g. 3m1d1h2h is 3 months + 1 day + 3 hours)\n"
 			"\n"
 			"<cron_spec>: Simplified cron expression, must be one of the following:\n"
-			"    <M> <H> <d> <m> <w>      Any of them can be either a number or *, with:\n"
+			"    <M> <H> <d> <m>          Any of them can be either a number or *, with:\n"
 			"                                 <M>: Minute [0-59]\n"
 			"                                 <H>: Hour [0-23]\n"
 			"                                 <d>: Day of the month [1-31]\n"
 			"                                 <m>: Month [1-12]\n"
-			"                                 <w>: Day of the week [0-6] (0 is Sunday)\n"
-			"    @hourly                  Same as 0 * * * *\n"
-			"    @daily                   Same as 0 0 * * *\n"
+			"    @hourly                  Same as 0 * * *\n"
+			"    @daily                   Same as 0 0 * *\n"
 			"    @midnight                Same as @daily\n"
-			"    @weekly                  Same as 0 0 * * 0\n"
-			"    @monthly                 Same as 0 0 1 * *\n"
-			"    @annually                Same as 0 0 1 1 *\n"
+			"    @monthly                 Same as 0 0 1 *\n"
+			"    @annually                Same as 0 0 1 1\n"
 			"    @yearly                  Same as @annually\n"
 			"\n"
 			"Available <action> and <path_spec> combinations:\n"
@@ -971,7 +989,7 @@ int main(int argc, char **argv)
 			.l_len = 0
 		};
 
-		ctx.lock_fd = open(lock_filename, DEFAULT_FILE_MODE);
+		ctx.lock_fd = open(lock_filename, O_CREAT | O_RDWR, DEFAULT_FILE_MODE);
 		if (ctx.lock_fd < 0)
 			goto fail_open_lock;
 
@@ -981,6 +999,58 @@ int main(int argc, char **argv)
 			/* Skip if failed to acquire the lock */
 			status = 0;
 			goto fail_lock_lock;
+		}
+
+		if (get_opt_defined(opts, OPT_CRON))
+		{
+			ssize_t ssresult;
+			int len;
+			time_t prev_time;
+			time_t cur_time;
+			char buf[32];
+			char *endp;
+
+			prev_time = -1;
+			cur_time = time(NULL);
+
+			ssresult = read(ctx.lock_fd, buf, sizeof(buf) - 1);
+			if (ssresult > 0)
+			{
+				buf[ssresult] = '\0';
+
+				prev_time = strtoll(buf, &endp, 10);
+				if (endp == buf || *endp)
+					prev_time = -1;
+			}
+
+			if (prev_time >= 0)
+			{
+				struct opt_data_cron *dcron = get_opt_cron(opts, OPT_CRON);
+				struct tm tm = *localtime(&cur_time);
+				time_t last_period;
+				int can_exec;
+
+				tm.tm_sec = 0;
+				if (dcron->M >= 0)
+					tm.tm_min = dcron->M;
+				if (dcron->H >= 0)
+					tm.tm_hour = dcron->H;
+				if (dcron->d >= 0)
+					tm.tm_mday = dcron->d;
+				if (dcron->m >= 0)
+					tm.tm_mon = dcron->m;
+
+				last_period = mktime(&tm);
+
+				can_exec = last_period <= cur_time && prev_time < last_period;
+				if (!can_exec)
+					goto done;
+			}
+
+			lseek(ctx.lock_fd, 0, SEEK_SET);
+			ftruncate(ctx.lock_fd, 0);
+			len = snprintf(buf, sizeof(buf), "%lld", (long long int)cur_time);
+			write(ctx.lock_fd, buf, len);
 		}
 	}
 
@@ -1190,6 +1260,7 @@ fail_digest:
 			goto fail_crypto;
 	}
 
+done:
 	status = 0;	
 
 fail_crypto:
