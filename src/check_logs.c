@@ -78,6 +78,13 @@ static inline int mini(int a, int b) {
 	return a < b ? a : b;
 }
 
+static inline unsigned char bin2hex(unsigned char c) {
+	if (c <= 9)
+		return '0' + c;
+
+	return 'a' + c - 0xA;
+}
+
 static inline const char *skip_spaces(const char *p) {
 	while (isspace(*p))
 		p++;
@@ -642,8 +649,8 @@ int do_crypto(struct rl_context *ctx, FILE *infp, FILE *outfp, FILE *digestinout
 	unsigned char lzmabuf[BLOCK_SIZE];
 	unsigned char cryptobuf[BLOCK_SIZE + EVP_MAX_BLOCK_LENGTH];
 	unsigned char writebuf[BLOCK_SIZE];
-	unsigned char digestbuf[EVP_MAX_MD_SIZE] = {0};
-	unsigned char digestchkbuf[EVP_MAX_MD_SIZE] = {0};
+	unsigned char digestbuf[2 * EVP_MAX_MD_SIZE + 5] = {0};
+	unsigned char digestchkbuf[2 * EVP_MAX_MD_SIZE + 5] = {0};
 
 #define CRYPTO_STEPD(s, inb, outb, f) { .step = (s), .fp = (f), .inbuf_size = 0, .inbuf_idx = 0, .inbuf = (inb), .outbuf_size = sizeof(outb), .outbuf = (outb), .eof = 0, .busy = 0 }
 #define CRYPTO_STEP(s, inb, outb) CRYPTO_STEPD(s, inb, outb, NULL)
@@ -860,6 +867,7 @@ int do_crypto(struct rl_context *ctx, FILE *infp, FILE *outfp, FILE *digestinout
 				case CRYPTO_STEP_DIGEST:
 				{
 					unsigned int osize = 0;
+					unsigned char digesttmpbuf[EVP_MAX_MD_SIZE];
 
 					result = 1;
 
@@ -868,12 +876,27 @@ int do_crypto(struct rl_context *ctx, FILE *infp, FILE *outfp, FILE *digestinout
 
 					if (result && prev_step->eof)
 					{
-						result = EVP_DigestFinal(ctx->digest_ctx, step->outbuf, &osize);
+						result = EVP_DigestFinal(ctx->digest_ctx, digesttmpbuf, &osize);
 						step->eof = 1;
 					}
 
 					if (!result)
 						goto fail_process;
+
+					if (step->eof)
+					{
+						for (size_t i = 0; i < osize; i++)
+						{
+							unsigned char val = digesttmpbuf[i];
+
+							step->outbuf[i * 2] = bin2hex(val >> 4);
+							step->outbuf[i * 2 + 1] = bin2hex(val & 0xF);
+						}
+
+						step->outbuf[osize * 2] = '\0';
+						strncat((char *)step->outbuf, " *-\n", step->outbuf_size);
+						osize = strlen((char *)step->outbuf);
+					}
 
 					step->inbuf_size = 0;
 					if (next_step)
@@ -924,7 +947,7 @@ int do_crypto(struct rl_context *ctx, FILE *infp, FILE *outfp, FILE *digestinout
 
 	if (ctx->pipeline == CRYPTO_PIPELINE_DIGEST)
 	{
-		result = memcmp(digestchkbuf, digestbuf, sizeof(digestbuf));
+		result = memcmp(digestchkbuf, digestbuf, 2 * EVP_MD_size(ctx->digest_type));
 		if (result != 0)
 			goto fail_process;
 	}
@@ -1362,6 +1385,7 @@ int main (int argc, char **argv)
 	};
 #undef OPT
 	int status = 1;
+	const char *reason = "N/A";
 	int result;
 	time_t now;
 	struct opt *gbl_opts = opt_tpl;
@@ -1470,6 +1494,7 @@ int main (int argc, char **argv)
 				if (!can_exec)
 				{
 					status = 0;
+					reason = "Cron timeout not expired";
 					goto done;
 				}
 			}
@@ -1510,6 +1535,6 @@ fail_lock_lock:
 fail_open_lock:
 	free_opts(opt_frames);
 
-	printf("%s\n", (status == 0) ? "OK" : "Critical");
+	printf("%s | %s\n", (status == 0) ? "OK" : "Critical", reason);
 	return status;
 }
