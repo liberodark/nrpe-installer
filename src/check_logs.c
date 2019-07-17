@@ -539,7 +539,8 @@ static char *build_out_filename(struct rl_context *ctx, size_t buf_size, char *b
 			strncat(buf, old_ext, buf_size);
 		strncat(buf, ext, buf_size);
 	}
-	else
+	else if (ctx->pipeline == CRYPTO_PIPELINE_EXTRACT
+			|| ctx->pipeline == CRYPTO_PIPELINE_DIGEST_DECRYPT_EXTRACT)
 	{
 		const char *ext = ctx->pipeline == CRYPTO_PIPELINE_EXTRACT ? ".xz" : ".xz.aes";
 		int result;
@@ -974,10 +975,12 @@ static time_t str_find_last_date(const char *str)
 {
 	size_t len;
 	const char *s;
-	struct tm tm = {0};
+	struct tm tm;
 
 	len = strlen(str);
 	s = &str[len];
+
+	tm = tm_zero();
 
 	while (s >= str)
 	{
@@ -1160,13 +1163,11 @@ int main_local(struct opt *opts)
 			if (t < 0)
 				continue;
 
-			if (now - t <= get_opt_duration(opts, OPT_CLEAN))
+			if (now - t < get_opt_duration(opts, OPT_CLEAN))
 				continue;
 
 			if (!get_opt_defined(opts, OPT_KEEP))
-			{
 				unlinkat(in_dir_fd, in_filename, 0);
-			}
 			continue;
 		}
 
@@ -1224,7 +1225,7 @@ fail_digest:
 			fclose(outfp);
 		if (infp)
 			fclose(infp);
-
+//fprintf(stderr, "\n===== %s - %s =====\n", in_filename, out_filename);
 fail_open:
 		if (cmd_accepts_out)
 		{
