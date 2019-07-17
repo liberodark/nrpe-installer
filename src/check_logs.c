@@ -27,8 +27,7 @@ static inline int mini(int a, int b) {
 
 enum opt_id
 {
-	OPT_AUTOCLEAN = 0,
-	OPT_CHECK,
+	OPT_CHECK = 0,
 	OPT_CLEAN,
 	OPT_COMPRESS,
 	OPT_CRON,
@@ -41,6 +40,7 @@ enum opt_id
 	OPT_LOCK,
 	OPT_OUT,
 	OPT_OUT_PATH,
+	OPT_THEN,
 	OPT_THREADS,
 	OPT_COUNT
 };
@@ -49,6 +49,7 @@ enum opt_type
 {
 	OPT_TYPE_INVAL = 0,
 	OPT_TYPE_NONE,
+	OPT_TYPE_THEN,
 	OPT_TYPE_INT,
 	OPT_TYPE_STR,
 	OPT_TYPE_DURATION,
@@ -67,6 +68,8 @@ struct opt
 {
 	enum opt_type type;
 	const char *name;
+	unsigned int global : 1;
+	unsigned int defined : 1;
 	union {
 		int as_int;
 		const char *as_str;
@@ -103,26 +106,35 @@ static inline const char *skip_spaces(const char *p) {
 	return p;
 }
 
-int parse_opts(int argc, char **argv, size_t opt_count, struct opt *opts)
+static int parse_opts_helper(int argc, char **argv, struct opt *opts)
 {
 	int result;
+	int i;
+	int arg_count = 0;
+	int has_then = 0;
 
-	for (int i = 1; i < argc; i++)
+	for (i = 0; i < argc; i++)
 	{
 		char *arg = argv[i];
 		int matched = 0;
 
-		for (size_t j = 0; j < opt_count; j++)
+		for (struct opt *opt = opts; opt->type != OPT_TYPE_INVAL; opt++)
 		{
-			struct opt *opt = &opts[j];
-
 			result = strcmp(arg, opt->name);
 			if (result != 0)
 				continue;
 
 			matched = 1;
+			/* For global */
+			opt->defined = 0;
 
-			opt->data.as_str = "";
+			if (opt->type == OPT_TYPE_THEN)
+			{
+				has_then = 1;
+				i++;
+				break;
+			}
+
 			if (opt->type != OPT_TYPE_NONE)
 			{
 				if (i >= argc - 1)
@@ -130,30 +142,33 @@ int parse_opts(int argc, char **argv, size_t opt_count, struct opt *opts)
 
 				opt->data.as_str = argv[++i];
 			}
+			else
+				opt->data.as_str = "";
 		}
 
 		if (!matched)
 			return -1;
+
+		if (has_then)
+			break;
 	}
 
-	for (size_t i = 0; i < opt_count; i++)
-	{
-		struct opt *opt = &opts[i];
+	arg_count = i;
 
-		if (opt->data.as_str)
+	for (struct opt *opt = opts; opt->type != OPT_TYPE_INVAL; opt++)
+	{
+		if (opt->defined)
 			continue;
 
-		opt->type = OPT_TYPE_INVAL;
-	}
-
-	for (size_t i = 0; i < opt_count; i++)
-	{
-		struct opt *opt = &opts[i];
+		if (!opt->data.as_str)
+			continue;
 
 		switch (opt->type)
 		{
 			case OPT_TYPE_INVAL:
 			case OPT_TYPE_NONE:
+			case OPT_TYPE_THEN:
+			case OPT_TYPE_STR:
 				break;
 
 			case OPT_TYPE_INT:
@@ -172,9 +187,6 @@ int parse_opts(int argc, char **argv, size_t opt_count, struct opt *opts)
 				opt->data.as_int = n;
 				break;
 			}
-
-			case OPT_TYPE_STR:
-				break;
 
 			case OPT_TYPE_DURATION:
 			{
@@ -232,19 +244,21 @@ int parse_opts(int argc, char **argv, size_t opt_count, struct opt *opts)
 				int params[4];
 				long int n;
 
+				p = opt->data.as_str;
+
 				for (size_t j = 0; j < ARRAY_SIZE(hardcoded); j += 2)
 				{
-					if (strcmp(opt->data.as_str, hardcoded[j]) == 0)
+					if (strcmp(p, hardcoded[j]) == 0)
 					{
-						opt->data.as_str = hardcoded[j + 1];
+						p = hardcoded[j + 1];
 						break;
 					}
 				}
 
-				p = opt->data.as_str;
-
 				for (size_t j = 0; j < ARRAY_SIZE(params); j++)
 				{
+					params[j] = 0;
+
 					if (p != opt->data.as_str
 							&& !isspace(*p))
 						return -1;
@@ -257,13 +271,19 @@ int parse_opts(int argc, char **argv, size_t opt_count, struct opt *opts)
 					{
 						params[j] = -1;
 						p++;
-						continue;
+
+						if (*p != '/')
+							continue;
+						p++;
 					}
 
 					n = strtol(p, &endp, 10);
 					if (endp == p || n < 0)
 						return -1;
 					p = endp;
+
+					if (params[j] < 0)
+						n = -n;
 
 					params[j] = n;
 				}
@@ -272,10 +292,10 @@ int parse_opts(int argc, char **argv, size_t opt_count, struct opt *opts)
 				if (*p)
 					return -1;
 
-				if ((params[0] != -1 && params[0] > 59)
-						|| (params[1] != -1 && params[1] > 23)
-						|| (params[2] != -1 && (params[2] < 1 || params[2] > 31))
-						|| (params[3] != -1 && (params[3] < 1 || params[3] > 12)))
+				if (params[0] > 59
+						|| params[1] > 23
+						|| params[2] == 0 || params[2] > 31
+						|| params[3] == 0 || params[3] > 12)
 					return -1;
 
 				opt->data.as_cron.M = params[0];
@@ -285,17 +305,96 @@ int parse_opts(int argc, char **argv, size_t opt_count, struct opt *opts)
 				break;
 			}
 		}
+
+		opt->defined = 1;
 	}
 
-	return 0;
+	return arg_count;
 }
+
+void free_opts(struct opt **opts)
+{
+	struct opt **orig = opts;
+
+	if (!orig)
+		return;
+
+	while (*opts)
+		free(*opts++);
+
+	free(orig);
+}
+
+struct opt **parse_opts(int argc, char **argv, struct opt *tpl)
+{
+	size_t opt_count;
+	size_t opt_frame_count = 0;
+	struct opt **opt_frames = NULL;
+
+	if (argc < 1 || !argv)
+		return NULL;
+
+	argc--;
+	argv++;
+
+	opt_count = 0;
+	while (tpl[opt_count].type != OPT_TYPE_INVAL)
+		opt_count++;
+	opt_count++;
+
+	for (size_t i = 0; argc > 0; i++)
+	{
+		int count;
+		struct opt *opts;
+		struct opt **new_opt_frames;
+
+		for (struct opt *opt = tpl; opt->type != OPT_TYPE_INVAL; opt++)
+		{
+			if (opt->global)
+				continue;
+
+			opt->defined = 0;
+			opt->data.as_str = NULL;
+		}
+
+		count = parse_opts_helper(argc, argv, tpl);
+		if (count < 0)
+			goto fail;
+
+		argc -= count;
+		argv += count;
+
+		opts = calloc(opt_count, sizeof(opts[0]));
+		if (!opts)
+			goto fail;
+
+		memcpy(opts, tpl, opt_count * sizeof(opts[0]));
+
+		new_opt_frames = realloc(opt_frames, (opt_frame_count + 2) * sizeof(opt_frames[0]));
+		if (!new_opt_frames)
+			goto fail;
+		opt_frames = new_opt_frames;
+
+		opt_frames[opt_frame_count] = opts;
+		opt_frames[opt_frame_count + 1] = NULL;
+		opt_frame_count++;
+	}
+
+	return opt_frames;
+
+fail:
+	free_opts(opt_frames);
+	return NULL;
+}
+
+
 
 int get_opt_defined(struct opt *opts, enum opt_id id)
 {
 	if (id >= OPT_COUNT)
 		return 0;
 
-	return opts[id].type != OPT_TYPE_INVAL;
+	return opts[id].defined;
 }
 
 int get_opt_int(struct opt *opts, enum opt_id id)
@@ -303,7 +402,7 @@ int get_opt_int(struct opt *opts, enum opt_id id)
 	if (id >= OPT_COUNT)
 		return INT_MAX;
 
-	if (opts[id].type != OPT_TYPE_INT)
+	if (!opts[id].defined || opts[id].type != OPT_TYPE_INT)
 		return INT_MAX;
 
 	return opts[id].data.as_int;
@@ -314,7 +413,7 @@ const char *get_opt_str(struct opt *opts, enum opt_id id)
 	if (id >= OPT_COUNT)
 		return NULL;
 
-	if (opts[id].type != OPT_TYPE_STR)
+	if (!opts[id].defined || opts[id].type != OPT_TYPE_STR)
 		return NULL;
 
 	return opts[id].data.as_str;
@@ -325,7 +424,7 @@ time_t get_opt_duration(struct opt *opts, enum opt_id id)
 	if (id >= OPT_COUNT)
 		return -1;
 
-	if (opts[id].type != OPT_TYPE_DURATION)
+	if (!opts[id].defined || opts[id].type != OPT_TYPE_DURATION)
 		return -1;
 
 	return opts[id].data.as_duration;
@@ -336,7 +435,7 @@ struct opt_data_cron *get_opt_cron(struct opt *opts, enum opt_id id)
 	if (id >= OPT_COUNT)
 		return NULL;
 
-	if (opts[id].type != OPT_TYPE_CRON)
+	if (!opts[id].defined || opts[id].type != OPT_TYPE_CRON)
 		return NULL;
 
 	return &opts[id].data.as_cron;
@@ -354,7 +453,6 @@ enum crypto_pipeline_id
 
 struct rl_context
 {
-	int lock_fd;
 	unsigned int pipeline_has_encrypt : 1;
 	unsigned int pipeline_has_decrypt : 1;
 	unsigned int pipeline_has_compress : 1;
@@ -380,7 +478,7 @@ struct rl_context
 	EVP_MD_CTX *digest_ctx;
 };
 
-static struct tm get_local_time(void)
+static struct tm get_local_time_tm(void)
 {
 	time_t tme;
 
@@ -409,7 +507,7 @@ static char *build_out_filename(struct rl_context *ctx, size_t buf_size, char *b
 		if (old_ext)
 			buf[(uintptr_t)old_ext - (uintptr_t)in_filename] = '\0';
 
-		tm = get_local_time();
+		tm = get_local_time_tm();
 		strftime(date_buf, sizeof(date_buf), "-%Y-%m-%d-%H-%M-%S", &tm);
 
 		strncat(buf, date_buf, buf_size);
@@ -442,6 +540,7 @@ static char *build_out_filename(struct rl_context *ctx, size_t buf_size, char *b
 
 static int open_files(int in_dir_fd, const char *in_filename, int out_dir_fd, const char *out_filename, FILE **infp, FILE **outfp)
 {
+	int result;
 	struct stat st;
 	int infd = -1, outfd = -1;
 
@@ -449,8 +548,8 @@ static int open_files(int in_dir_fd, const char *in_filename, int out_dir_fd, co
 	{
 		*infp = NULL;
 
-		fstatat(in_dir_fd, in_filename, &st, 0);
-		if (!S_ISREG(st.st_mode))
+		result = fstatat(in_dir_fd, in_filename, &st, 0);
+		if (result < 0 || !S_ISREG(st.st_mode))
 			goto fail;
 
 		infd = openat(in_dir_fd, in_filename, O_RDONLY);
@@ -831,228 +930,62 @@ fail_lzma_init:
 	return status;
 }
 
-int print_usage(int argc, char **argv)
+static struct tm abs_tm_to_local_tm(struct tm tm)
 {
-	fprintf(stderr,
-			"Usage: %s <action> [<subaction> ...] <path_spec> [-keep] [-lock <lock_file> [-cron <cron_spec>]] [-threads <count>]\n"
-			"\n"
-			"Options:\n"
-			"    -keep                    Do not remove input files\n"
-			"    -lock <lock_file>        Avoid concurrent execution by locking <lock_file>\n"
-			"                             upon startup\n"
-			"    -cron <cron_spec>        Abort execution if runned before the end of\n"
-			"                             the current period\n"
-			"                             Refer to the <cron_spec> section\n"
-			"    -threads <count>         Set the thread count available for compression\n"
-			"\n"
-			"<action>: Must be exactly one of the following:\n"
-			"    -encrypt <password>      Compress, encrypt and produce a hash\n"
-			"    -decrypt <password>      Check the hash, decrypt and extract\n"
-			"    -compress                Compress\n"
-			"    -extract                 Extract\n"
-			"    -check                   Check the hash\n"
-			"    -clean <duration>        Remove files older than <duration>\n"
-			"                             Refer to the <duration> section\n"
-			"\n"
-			"<subaction>: Can be zero or more of the following:\n"
-			"    -autoclean <duration>    Remove files older than <duration> inside the\n"
-			"                             <action> explicit or implicit -out or -out-path\n"
-			"\n"
-			"<path_spec>: Can be a combination of the following:\n"
-			"    -in-path <dir>           The input directory\n"
-			"    -in <file>               The input file\n"
-			"    -out-path <dir>          The output directory\n"
-			"    -out <file>              The output file\n"
-			"If -in-path is specified then -out cannot be specified\n"
-			"Refer to the \"Available <action> and <path_spec> combinations\" section\n"
-			"\n"
-			"<duration>: The result of concatenation of one or more of the following:\n"
-			"    <n>h                     Hour count\n"
-			"    <n>d                     Day count\n"
-			"    <n>m                     Month count\n"
-			"    <n>y                     Year count\n"
-			"The resulting <duration> is the sum of all individual durations\n"
-			"(e.g. 3m1d1h2h is 3 months + 1 day + 3 hours)\n"
-			"\n"
-			"<cron_spec>: Simplified cron expression, must be one of the following:\n"
-			"    <M> <H> <d> <m>          Any of them can be either a number or *, with:\n"
-			"                                 <M>: Minute [0-59]\n"
-			"                                 <H>: Hour [0-23]\n"
-			"                                 <d>: Day of the month [1-31]\n"
-			"                                 <m>: Month [1-12]\n"
-			"    @hourly                  Same as 0 * * *\n"
-			"    @daily                   Same as 0 0 * *\n"
-			"    @midnight                Same as @daily\n"
-			"    @monthly                 Same as 0 0 1 *\n"
-			"    @annually                Same as 0 0 1 1\n"
-			"    @yearly                  Same as @annually\n"
-			"\n"
-			"Available <action> and <path_spec> combinations:\n"
-			"    -encrypt <password> -in-path <dir> [-out-path <dir>]\n"
-			"    -encrypt <password> -in <file> [-out-path <dir> | -out <file>]\n"
-			"\n"
-			"    -decrypt <password> -in-path <dir> [-out-path <dir>]\n"
-			"    -decrypt <password> -in <file> [-out-path <dir> | -out <file>]\n"
-			"\n"
-			"    -compress -in-path <dir> [-out-path <dir>]\n"
-			"    -compress -in <file> [-out-path <dir> | -out <file>]\n"
-			"\n"
-			"    -extract -in-path <dir> [-out-path <dir>]\n"
-			"    -extract -in <file> [-out-path <dir> | -out <file>]\n"
-			"\n"
-			"    -check -in-path <dir>\n"
-			"    -check -in <file>\n"
-			"\n"
-			"    -clean <duration> -in-path <dir>\n"
-			"    -clean <duration> -in <file>\n", (argc >= 1) ? argv[0] : "rotate_logs");
-	return 1;
+	tm.tm_year -= 1900;
+	tm.tm_mon--;
+	return tm;
 }
 
-int main(int argc, char **argv)
+static time_t str_find_last_date(const char *str)
 {
-#define OPT_NONE(e, n) [e] = { .type = OPT_TYPE_NONE, .name = n }
-#define OPT_STR(e, n) [e] = { .type = OPT_TYPE_STR, .name = n }
-#define OPT_INT(e, n) [e] = { .type = OPT_TYPE_INT, .name = n }
-#define OPT_DURATION(e, n) [e] = { .type = OPT_TYPE_DURATION, .name = n }
-#define OPT_CRON(e, n) [e] = { .type = OPT_TYPE_CRON, .name = n }
-	struct opt opts[] = {
-		OPT_DURATION(OPT_AUTOCLEAN, "-autoclean"),
-		OPT_NONE(OPT_CHECK, "-check"),
-		OPT_DURATION(OPT_CLEAN, "-clean"),
-		OPT_NONE(OPT_COMPRESS, "-compress"),
-		OPT_CRON(OPT_CRON, "-cron"),
-		OPT_STR(OPT_DECRYPT, "-decrypt"),
-		OPT_STR(OPT_ENCRYPT, "-encrypt"),
-		OPT_NONE(OPT_EXTRACT, "-extract"),
-		OPT_STR(OPT_IN, "-in"),
-		OPT_STR(OPT_IN_PATH, "-in-path"),
-		OPT_NONE(OPT_KEEP, "-keep"),
-		OPT_STR(OPT_LOCK, "-lock"),
-		OPT_STR(OPT_OUT, "-out"),
-		OPT_STR(OPT_OUT_PATH, "-out-path"),
-		OPT_INT(OPT_THREADS, "-threads")
-	};
-#undef OPT
+	size_t len;
+	const char *s;
+	struct tm tm = {0};
+
+	len = strlen(str);
+	s = &str[len];
+
+	while (s >= str)
+	{
+		int count;
+
+		count = sscanf(s, "-%d-%d-%d-%d-%d-%d", &tm.tm_year, &tm.tm_mon, &tm.tm_mday, &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
+		if (count == 6)
+			break;
+		s--;
+	}
+
+	if (s < str)
+		return -1;
+
+	tm = abs_tm_to_local_tm(tm);
+	return mktime(&tm);
+}
+
+int main_local(struct opt *opts)
+{
 	int status = 1;
 	int result;
+	time_t now;
+	int cmd_accepts_out;
 	int in_is_dir;
 	int has_out;
 	int out_is_dir;
-	int cmd_accepts_out;
 	struct rl_context ctx;
 	int in_dir_fd;
 	DIR *in_dir;
 	int out_dir_fd;
 	struct dirent *in_dir_entry;
 
-	result = parse_opts(argc, argv, OPT_COUNT, opts);
-	if (result < 0)
-		return print_usage(argc, argv);
-
-	in_is_dir = get_opt_defined(opts, OPT_IN_PATH);
-	has_out = get_opt_defined(opts, OPT_OUT_PATH) || get_opt_defined(opts, OPT_OUT);
-	out_is_dir = get_opt_defined(opts, OPT_OUT_PATH);
+	now = time(NULL);
 
 	cmd_accepts_out = get_opt_defined(opts, OPT_ENCRYPT) || get_opt_defined(opts, OPT_DECRYPT)
 			|| get_opt_defined(opts, OPT_COMPRESS) || get_opt_defined(opts, OPT_EXTRACT);
 
-	if (
-			/* There must be exactly one <action> */
-			(get_opt_defined(opts, OPT_ENCRYPT) + get_opt_defined(opts, OPT_DECRYPT)
-				+ get_opt_defined(opts, OPT_COMPRESS) + get_opt_defined(opts, OPT_EXTRACT)
-				+ get_opt_defined(opts, OPT_CHECK) + get_opt_defined(opts, OPT_CLEAN) != 1)
-			/* -out-path and -out are disallowed if the <action> does not accept output */
-			|| (!cmd_accepts_out && has_out)
-			/* -autoclean requires an explicit or implicit -out or -out-path */
-			|| (!cmd_accepts_out && get_opt_defined(opts, OPT_AUTOCLEAN))
-			/* There must be exactly one of -in-path or -in */
-			|| (get_opt_defined(opts, OPT_IN_PATH) + get_opt_defined(opts, OPT_IN) != 1)
-			/* There must be at most one of -out-path or -out */
-			|| (get_opt_defined(opts, OPT_OUT_PATH) + get_opt_defined(opts, OPT_OUT) > 1)
-			/* If -in-path is specified then -out cannot be specified */
-			|| (get_opt_defined(opts, OPT_IN_PATH) && get_opt_defined(opts, OPT_OUT))
-			/* -cron requires -lock */
-			|| (get_opt_defined(opts, OPT_CRON) && !get_opt_defined(opts, OPT_LOCK))
-			/* The thread count must be > 0 */
-			|| (get_opt_defined(opts, OPT_THREADS) && get_opt_int(opts, OPT_THREADS) <= 0))
-		return print_usage(argc, argv);
-
-	ctx.lock_fd = -1;
-
-	if (get_opt_defined(opts, OPT_LOCK))
-	{
-		const char *lock_filename = get_opt_str(opts, OPT_LOCK);
-		struct flock lck = {
-			.l_type = F_WRLCK,
-			.l_whence = SEEK_SET,
-			.l_start = 0,
-			.l_len = 0
-		};
-
-		ctx.lock_fd = open(lock_filename, O_CREAT | O_RDWR, DEFAULT_FILE_MODE);
-		if (ctx.lock_fd < 0)
-			goto fail_open_lock;
-
-		result = fcntl(ctx.lock_fd, F_SETLK, &lck);
-		if (result < 0)
-		{
-			/* Skip if failed to acquire the lock */
-			status = 0;
-			goto fail_lock_lock;
-		}
-
-		if (get_opt_defined(opts, OPT_CRON))
-		{
-			ssize_t ssresult;
-			int len;
-			time_t prev_time;
-			time_t cur_time;
-			char buf[32];
-			char *endp;
-
-			prev_time = -1;
-			cur_time = time(NULL);
-
-			ssresult = read(ctx.lock_fd, buf, sizeof(buf) - 1);
-			if (ssresult > 0)
-			{
-				buf[ssresult] = '\0';
-
-				prev_time = strtoll(buf, &endp, 10);
-				if (endp == buf || *endp)
-					prev_time = -1;
-			}
-
-			if (prev_time >= 0)
-			{
-				struct opt_data_cron *dcron = get_opt_cron(opts, OPT_CRON);
-				struct tm tm = *localtime(&cur_time);
-				time_t last_period;
-				int can_exec;
-
-				tm.tm_sec = 0;
-				if (dcron->M >= 0)
-					tm.tm_min = dcron->M;
-				if (dcron->H >= 0)
-					tm.tm_hour = dcron->H;
-				if (dcron->d >= 0)
-					tm.tm_mday = dcron->d;
-				if (dcron->m >= 0)
-					tm.tm_mon = dcron->m;
-
-				last_period = mktime(&tm);
-
-				can_exec = last_period <= cur_time && prev_time < last_period;
-				if (!can_exec)
-					goto done;
-			}
-
-			lseek(ctx.lock_fd, 0, SEEK_SET);
-			ftruncate(ctx.lock_fd, 0);
-			len = snprintf(buf, sizeof(buf), "%lld", (long long int)cur_time);
-			write(ctx.lock_fd, buf, len);
-		}
-	}
+	in_is_dir = get_opt_defined(opts, OPT_IN_PATH);
+	has_out = get_opt_defined(opts, OPT_OUT_PATH) || get_opt_defined(opts, OPT_OUT);
+	out_is_dir = get_opt_defined(opts, OPT_OUT_PATH);
 
 	ctx.pipeline_has_encrypt = get_opt_defined(opts, OPT_ENCRYPT);
 	ctx.pipeline_has_decrypt = get_opt_defined(opts, OPT_DECRYPT);
@@ -1176,6 +1109,7 @@ int main(int argc, char **argv)
 	while ((!in_is_dir && first_loop)
 			|| (in_is_dir && (in_dir_entry = readdir(in_dir))))
 	{
+		int dont_panic = 0;
 		const char *in_filename = NULL;
 		char out_filename_buf[4096];
 		const char *out_filename = NULL;
@@ -1185,6 +1119,26 @@ int main(int argc, char **argv)
 		first_loop = 0;
 
 		in_filename = in_is_dir ? in_dir_entry->d_name : get_opt_str(opts, OPT_IN);
+
+		if (get_opt_defined(opts, OPT_CLEAN))
+		{
+			time_t t;
+
+			t = str_find_last_date(in_filename);
+			if (t < 0)
+				continue;
+
+printf("%d %s %ld - %ld = %ld -- %ld\n", get_opt_defined(opts, OPT_KEEP), in_filename, now, t, now - t, get_opt_duration(opts, OPT_CLEAN));
+
+			if (now - t <= get_opt_duration(opts, OPT_CLEAN))
+				continue;
+
+			if (!get_opt_defined(opts, OPT_KEEP))
+			{
+				unlinkat(in_dir_fd, in_filename, 0);
+			}
+			continue;
+		}
 
 		if (cmd_accepts_out)
 		{
@@ -1202,12 +1156,25 @@ int main(int argc, char **argv)
 			}
 		}
 
+		result = open_files(in_dir_fd, in_filename, out_dir_fd, out_filename, &infp, &outfp);
+		if (result < 0)
+		{
+			if (!in_is_dir)
+				goto fail_open;
+			continue;
+		}
+
 		if (ctx.pipeline_has_in_digest)
 		{
 			build_out_filename(&ctx, sizeof(digest_filename_buf), digest_filename_buf, in_filename, 1);
 			result = open_files(in_dir_fd, digest_filename_buf, -1, NULL, &digestfp, NULL);
 			if (result < 0)
+			{
+				/* Just ignore the file if it was specified by -in-path and there is no matching .sha file */
+				if (in_is_dir)
+					dont_panic = 1;
 				goto fail_digest;
+			}
 		}
 		else if (ctx.pipeline_has_out_digest && cmd_accepts_out)
 		{
@@ -1217,26 +1184,18 @@ int main(int argc, char **argv)
 				goto fail_digest;
 		}
 
-		result = open_files(in_dir_fd, in_filename, out_dir_fd, out_filename, &infp, &outfp);
-		if (result < 0)
-		{
-			if (!in_is_dir)
-				goto fail_open;
-			continue;
-		}
-
 		result = do_crypto(&ctx, infp, outfp, digestfp);
 
+		if (digestfp)
+			fclose(digestfp);
+
+fail_digest:
 		if (outfp)
 			fclose(outfp);
 		if (infp)
 			fclose(infp);
 
 fail_open:
-		if (digestfp)
-			fclose(digestfp);
-
-fail_digest:
 		if (cmd_accepts_out)
 		{
 			if (result == 0)
@@ -1256,11 +1215,10 @@ fail_digest:
 			}
 		}
 
-		if (result < 0)
+		if (result < 0 && !dont_panic)
 			goto fail_crypto;
 	}
 
-done:
 	status = 0;	
 
 fail_crypto:
@@ -1281,7 +1239,252 @@ fail_digest_ctx_new:
 
 fail_cipher_ctx_new:
 fail_lzma_settings:
-	if (ctx.lock_fd >= 0)
+	return status;
+}
+
+int print_usage(int argc, char **argv)
+{
+	fprintf(stderr,
+			"Usage: %s [<global_option> ...] <action> <path_spec> [-keep] [-threads <count>]\n"
+			"\n"
+			"<global_option>:\n"
+			"    -lock <lock_file>        Avoid concurrent execution by locking <lock_file>\n"
+			"                             upon startup\n"
+			"    -cron <cron_spec>        Abort execution if runned before the end of\n"
+			"                             the current period\n"
+			"                             Refer to the <cron_spec> section\n"
+			"\n"
+			"Options:\n"
+			"    -keep                    Do not remove input files\n"
+			"    -threads <count>         Set the thread count available for compression\n"
+			"\n"
+			"<action>: Must be exactly one of the following:\n"
+			"    -encrypt <password>      Compress, encrypt and produce a hash\n"
+			"    -decrypt <password>      Check the hash, decrypt and extract\n"
+			"    -compress                Compress\n"
+			"    -extract                 Extract\n"
+			"    -check                   Check the hash\n"
+			"    -clean <duration>        Remove files older than <duration>\n"
+			"                             Refer to the <duration> section\n"
+			"\n"
+			"<path_spec>: Can be a combination of the following:\n"
+			"    -in-path <dir>           The input directory\n"
+			"    -in <file>               The input file\n"
+			"    -out-path <dir>          The output directory\n"
+			"    -out <file>              The output file\n"
+			"If -in-path is specified then -out cannot be specified\n"
+			"Refer to the \"Available <action> and <path_spec> combinations\" section\n"
+			"\n"
+			"<duration>: The result of concatenation of one or more of the following:\n"
+			"    <n>h                     Hour count\n"
+			"    <n>d                     Day count\n"
+			"    <n>m                     Month count\n"
+			"    <n>y                     Year count\n"
+			"The resulting <duration> is the sum of all individual durations\n"
+			"(e.g. 3m1d1h2h is 3 months + 1 day + 3 hours)\n"
+			"\n"
+			"<cron_spec>: Simplified cron expression, must be one of the following:\n"
+			"    <M> <H> <d> <m>          Any of them can be either a number, * or */<n>, with:\n"
+			"                                 <M>: Minute [0-59]\n"
+			"                                 <H>: Hour [0-23]\n"
+			"                                 <d>: Day of the month [1-31]\n"
+			"                                 <m>: Month [1-12]\n"
+			"    @hourly                  Same as 0 * * *\n"
+			"    @daily                   Same as 0 0 * *\n"
+			"    @midnight                Same as @daily\n"
+			"    @monthly                 Same as 0 0 1 *\n"
+			"    @annually                Same as 0 0 1 1\n"
+			"    @yearly                  Same as @annually\n"
+			"\n"
+			"Available <action> and <path_spec> combinations:\n"
+			"    -encrypt <password> -in-path <dir> [-out-path <dir>]\n"
+			"    -encrypt <password> -in <file> [-out-path <dir> | -out <file>]\n"
+			"\n"
+			"    -decrypt <password> -in-path <dir> [-out-path <dir>]\n"
+			"    -decrypt <password> -in <file> [-out-path <dir> | -out <file>]\n"
+			"\n"
+			"    -compress -in-path <dir> [-out-path <dir>]\n"
+			"    -compress -in <file> [-out-path <dir> | -out <file>]\n"
+			"\n"
+			"    -extract -in-path <dir> [-out-path <dir>]\n"
+			"    -extract -in <file> [-out-path <dir> | -out <file>]\n"
+			"\n"
+			"    -check -in-path <dir>\n"
+			"    -check -in <file>\n"
+			"\n"
+			"    -clean <duration> -in-path <dir>\n"
+			"    -clean <duration> -in <file>\n", (argc >= 1) ? argv[0] : "rotate_logs");
+	return 1;
+}
+
+static inline int tm_fix_cron(int tm_field, int cron_field) {
+	if (cron_field < 0)
+		return tm_field - tm_field % -cron_field;
+
+	return cron_field;
+}
+
+
+int main (int argc, char **argv)
+{
+#define OPT_NONE(e, n, g) [e] = { .type = OPT_TYPE_NONE, .name = n, .global = g }
+#define OPT_THEN(e, n, g) [e] = { .type = OPT_TYPE_THEN, .name = n, .global = g }
+#define OPT_STR(e, n, g) [e] = { .type = OPT_TYPE_STR, .name = n, .global = g }
+#define OPT_INT(e, n, g) [e] = { .type = OPT_TYPE_INT, .name = n, .global = g }
+#define OPT_DURATION(e, n, g) [e] = { .type = OPT_TYPE_DURATION, .name = n, .global = g }
+#define OPT_CRON(e, n, g) [e] = { .type = OPT_TYPE_CRON, .name = n, .global = g }
+#define OPT_END() [OPT_COUNT] = { .type = OPT_TYPE_INVAL, .name = NULL }
+	struct opt opt_tpl[] = {
+		OPT_NONE(OPT_CHECK, "-check", 0),
+		OPT_DURATION(OPT_CLEAN, "-clean", 0),
+		OPT_NONE(OPT_COMPRESS, "-compress", 0),
+		OPT_CRON(OPT_CRON, "-cron", 1),
+		OPT_STR(OPT_DECRYPT, "-decrypt", 0),
+		OPT_STR(OPT_ENCRYPT, "-encrypt", 0),
+		OPT_NONE(OPT_EXTRACT, "-extract", 0),
+		OPT_STR(OPT_IN, "-in", 0),
+		OPT_STR(OPT_IN_PATH, "-in-path", 0),
+		OPT_NONE(OPT_KEEP, "-keep", 0),
+		OPT_STR(OPT_LOCK, "-lock", 1),
+		OPT_STR(OPT_OUT, "-out", 0),
+		OPT_STR(OPT_OUT_PATH, "-out-path", 0),
+		OPT_THEN(OPT_THEN, "-then", 0),
+		OPT_INT(OPT_THREADS, "-threads", 0),
+		OPT_END()
+	};
+#undef OPT
+	int status = 1;
+	int result;
+	time_t now;
+	struct opt *gbl_opts = opt_tpl;
+	struct opt **opt_frames;
+	int lock_fd;
+
+	now = time(NULL);
+
+	opt_frames = parse_opts(argc, argv, opt_tpl);
+	if (!opt_frames)
+		return print_usage(argc, argv);
+
+	for (size_t i = 0; opt_frames[i]; i++)
+	{
+		struct opt *opts = opt_frames[i];
+
+		int cmd_accepts_out = get_opt_defined(opts, OPT_ENCRYPT) || get_opt_defined(opts, OPT_DECRYPT)
+				|| get_opt_defined(opts, OPT_COMPRESS) || get_opt_defined(opts, OPT_EXTRACT);
+		int has_out = get_opt_defined(opts, OPT_OUT_PATH) || get_opt_defined(opts, OPT_OUT);
+
+		if (
+				/* There must be exactly one <action> */
+				(get_opt_defined(opts, OPT_ENCRYPT) + get_opt_defined(opts, OPT_DECRYPT)
+					+ get_opt_defined(opts, OPT_COMPRESS) + get_opt_defined(opts, OPT_EXTRACT)
+					+ get_opt_defined(opts, OPT_CHECK) + get_opt_defined(opts, OPT_CLEAN) != 1)
+				/* -out-path and -out are disallowed if the <action> does not accept output */
+				|| (!cmd_accepts_out && has_out)
+				/* There must be exactly one of -in-path or -in */
+				|| (get_opt_defined(opts, OPT_IN_PATH) + get_opt_defined(opts, OPT_IN) != 1)
+				/* There must be at most one of -out-path or -out */
+				|| (get_opt_defined(opts, OPT_OUT_PATH) + get_opt_defined(opts, OPT_OUT) > 1)
+				/* If -in-path is specified then -out cannot be specified */
+				|| (get_opt_defined(opts, OPT_IN_PATH) && get_opt_defined(opts, OPT_OUT))
+				/* -cron requires -lock */
+				|| (get_opt_defined(gbl_opts, OPT_CRON) && !get_opt_defined(gbl_opts, OPT_LOCK))
+				/* The thread count must be > 0 */
+				|| (get_opt_defined(opts, OPT_THREADS) && get_opt_int(opts, OPT_THREADS) <= 0))
+			{
+				free_opts(opt_frames);
+				return print_usage(argc, argv);
+			}
+	}
+
+	lock_fd = -1;
+
+	if (get_opt_defined(gbl_opts, OPT_LOCK))
+	{
+		const char *lock_filename = get_opt_str(gbl_opts, OPT_LOCK);
+		struct flock lck = {
+			.l_type = F_WRLCK,
+			.l_whence = SEEK_SET,
+			.l_start = 0,
+			.l_len = 0
+		};
+
+		lock_fd = open(lock_filename, O_CREAT | O_RDWR, DEFAULT_FILE_MODE);
+		if (lock_fd < 0)
+			goto fail_open_lock;
+
+		result = fcntl(lock_fd, F_SETLK, &lck);
+		if (result < 0)
+		{
+			/* Skip if failed to acquire the lock */
+			status = 0;
+			goto fail_lock_lock;
+		}
+
+		if (get_opt_defined(gbl_opts, OPT_CRON))
+		{
+			ssize_t ssresult;
+			int len;
+			time_t prev_time;
+			time_t cur_time;
+			char buf[32];
+			char *endp;
+
+			prev_time = -1;
+			cur_time = now;
+
+			ssresult = read(lock_fd, buf, sizeof(buf) - 1);
+			if (ssresult > 0)
+			{
+				buf[ssresult] = '\0';
+
+				prev_time = strtoll(buf, &endp, 10);
+				if (endp == buf || *endp)
+					prev_time = -1;
+			}
+
+			if (prev_time >= 0)
+			{
+				struct opt_data_cron *dcron = get_opt_cron(gbl_opts, OPT_CRON);
+				struct tm tm = *localtime(&cur_time);
+				time_t last_period;
+				int can_exec;
+
+				tm.tm_sec = 0;
+				tm.tm_min = tm_fix_cron(tm.tm_min, dcron->M);
+				tm.tm_hour = tm_fix_cron(tm.tm_hour, dcron->H);
+				tm.tm_mday = tm_fix_cron(tm.tm_mday, dcron->d);
+				tm.tm_mon = tm_fix_cron(tm.tm_mon, dcron->m);
+
+				last_period = mktime(&tm);
+
+				can_exec = last_period <= cur_time && prev_time < last_period;
+				if (!can_exec)
+				{
+					status = 0;
+					goto done;
+				}
+			}
+
+			lseek(lock_fd, 0, SEEK_SET);
+			ftruncate(lock_fd, 0);
+			len = snprintf(buf, sizeof(buf), "%lld", (long long int)cur_time);
+			write(lock_fd, buf, len);
+		}
+	}
+
+	for (size_t i = 0; opt_frames[i]; i++)
+	{
+		status = main_local(opt_frames[i]);
+		if (status != 0)
+			goto fail_process;
+	}
+
+done:
+	status = 0;
+
+fail_process:
+	if (lock_fd >= 0)
 	{
 		struct flock lck = {
 			.l_type = F_UNLCK,
@@ -1289,15 +1492,16 @@ fail_lzma_settings:
 			.l_start = 0,
 			.l_len = 0
 		};
-		fcntl(ctx.lock_fd, F_SETLK, &lck);
+		fcntl(lock_fd, F_SETLK, &lck);
 	}
 
 fail_lock_lock:
-	if (ctx.lock_fd >= 0)
-		close(ctx.lock_fd);
+	if (lock_fd >= 0)
+		close(lock_fd);
 
 fail_open_lock:
-	printf("%s\n", (status == 0) ? "OK" : "Critical");
+	free_opts(opt_frames);
 
+	printf("%s\n", (status == 0) ? "OK" : "Critical");
 	return status;
 }
