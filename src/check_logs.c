@@ -21,10 +21,6 @@
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
-static inline int mini(int a, int b) {
-	return a < b ? a : b;
-}
-
 enum opt_id
 {
 	OPT_CHECK = 0,
@@ -78,6 +74,17 @@ struct opt
 	} data;
 };
 
+static inline int mini(int a, int b) {
+	return a < b ? a : b;
+}
+
+static inline const char *skip_spaces(const char *p) {
+	while (isspace(*p))
+		p++;
+
+	return p;
+}
+
 static inline const char *my_basename(const char *s) {
 	const char *p;
 
@@ -99,11 +106,28 @@ static inline const char *my_basename(const char *s) {
 	return &p[1];
 }
 
-static inline const char *skip_spaces(const char *p) {
-	while (isspace(*p))
-		p++;
+static struct tm tm_zero(void)
+{
+	time_t tim;
 
-	return p;
+	tim = 0;
+	return *localtime(&tim);
+}
+
+static time_t abs_tm_to_local_time(struct tm tm)
+{
+	tm.tm_year -= 1900;
+	tm.tm_mon--;
+	tm.tm_isdst = -1;
+	return mktime(&tm);
+}
+
+static struct tm get_local_time_tm(void)
+{
+	time_t tim;
+
+	tim = time(NULL);
+	return *localtime(&tim);
 }
 
 static int parse_opts_helper(int argc, char **argv, struct opt *opts)
@@ -199,8 +223,7 @@ static int parse_opts_helper(int argc, char **argv, struct opt *opts)
 				if (!*p)
 					return -1;
 
-				duration = 0;
-				tm = *localtime(&duration);
+				tm = tm_zero();
 
 				while (*p)
 				{
@@ -239,27 +262,29 @@ static int parse_opts_helper(int argc, char **argv, struct opt *opts)
 					"@annually", "0 0 1 1"
 					"@yearly",   "0 0 1 1"
 				};
-				const char *p;
+				const char *origp, *p;
 				char *endp;
 				int params[4];
 				long int n;
 
-				p = opt->data.as_str;
+				origp = opt->data.as_str;
 
 				for (size_t j = 0; j < ARRAY_SIZE(hardcoded); j += 2)
 				{
-					if (strcmp(p, hardcoded[j]) == 0)
+					if (strcmp(origp, hardcoded[j]) == 0)
 					{
-						p = hardcoded[j + 1];
+						origp = hardcoded[j + 1];
 						break;
 					}
 				}
+
+				p = origp;
 
 				for (size_t j = 0; j < ARRAY_SIZE(params); j++)
 				{
 					params[j] = 0;
 
-					if (p != opt->data.as_str
+					if (p != origp
 							&& !isspace(*p))
 						return -1;
 
@@ -477,14 +502,6 @@ struct rl_context
 	const EVP_MD *digest_type;
 	EVP_MD_CTX *digest_ctx;
 };
-
-static struct tm get_local_time_tm(void)
-{
-	time_t tme;
-
-	tme = time(NULL);
-	return *localtime(&tme);
-}
 
 static char *build_out_filename(struct rl_context *ctx, size_t buf_size, char *buf, const char *in_filename, int is_digest)
 {
@@ -930,13 +947,6 @@ fail_lzma_init:
 	return status;
 }
 
-static struct tm abs_tm_to_local_tm(struct tm tm)
-{
-	tm.tm_year -= 1900;
-	tm.tm_mon--;
-	return tm;
-}
-
 static time_t str_find_last_date(const char *str)
 {
 	size_t len;
@@ -959,8 +969,7 @@ static time_t str_find_last_date(const char *str)
 	if (s < str)
 		return -1;
 
-	tm = abs_tm_to_local_tm(tm);
-	return mktime(&tm);
+	return abs_tm_to_local_time(tm);
 }
 
 int main_local(struct opt *opts)
@@ -1128,8 +1137,6 @@ int main_local(struct opt *opts)
 			if (t < 0)
 				continue;
 
-printf("%d %s %ld - %ld = %ld -- %ld\n", get_opt_defined(opts, OPT_KEEP), in_filename, now, t, now - t, get_opt_duration(opts, OPT_CLEAN));
-
 			if (now - t <= get_opt_duration(opts, OPT_CLEAN))
 				continue;
 
@@ -1245,18 +1252,15 @@ fail_lzma_settings:
 int print_usage(int argc, char **argv)
 {
 	fprintf(stderr,
-			"Usage: %s [<global_option> ...] <action> <path_spec> [-keep] [-threads <count>]\n"
+			"Usage: %s [-lock <lock_file> [-cron <cron_spec>]] <action> <path_spec> [<options>] [-then <action> <path_spec> [<options>] ...]\n"
 			"\n"
-			"<global_option>:\n"
+			"Global options:\n"
 			"    -lock <lock_file>        Avoid concurrent execution by locking <lock_file>\n"
 			"                             upon startup\n"
 			"    -cron <cron_spec>        Abort execution if runned before the end of\n"
 			"                             the current period\n"
+			"                             Requires -lock\n"
 			"                             Refer to the <cron_spec> section\n"
-			"\n"
-			"Options:\n"
-			"    -keep                    Do not remove input files\n"
-			"    -threads <count>         Set the thread count available for compression\n"
 			"\n"
 			"<action>: Must be exactly one of the following:\n"
 			"    -encrypt <password>      Compress, encrypt and produce a hash\n"
@@ -1274,6 +1278,10 @@ int print_usage(int argc, char **argv)
 			"    -out <file>              The output file\n"
 			"If -in-path is specified then -out cannot be specified\n"
 			"Refer to the \"Available <action> and <path_spec> combinations\" section\n"
+			"\n"
+			"<options>:\n"
+			"    -keep                    Do not remove input files\n"
+			"    -threads <count>         Set the thread count available for compression\n"
 			"\n"
 			"<duration>: The result of concatenation of one or more of the following:\n"
 			"    <n>h                     Hour count\n"
@@ -1454,7 +1462,7 @@ int main (int argc, char **argv)
 				tm.tm_min = tm_fix_cron(tm.tm_min, dcron->M);
 				tm.tm_hour = tm_fix_cron(tm.tm_hour, dcron->H);
 				tm.tm_mday = tm_fix_cron(tm.tm_mday, dcron->d);
-				tm.tm_mon = tm_fix_cron(tm.tm_mon, dcron->m);
+				tm.tm_mon = tm_fix_cron(tm.tm_mon, dcron->m - 1);
 
 				last_period = mktime(&tm);
 
