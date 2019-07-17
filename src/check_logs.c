@@ -510,7 +510,7 @@ struct rl_context
 	EVP_MD_CTX *digest_ctx;
 };
 
-static char *build_out_filename(struct rl_context *ctx, size_t buf_size, char *buf, const char *in_filename, int is_digest)
+static int build_out_filename(struct rl_context *ctx, size_t buf_size, char *buf, const char *in_filename, int is_digest)
 {
 	struct tm tm;
 	char date_buf[64];
@@ -519,7 +519,10 @@ static char *build_out_filename(struct rl_context *ctx, size_t buf_size, char *b
 	buf[buf_size - 1] = '\0';
 
 	if (is_digest)
-		return strncat(buf, ".sha", buf_size);
+	{
+		strncat(buf, ".sha", buf_size);
+		return 0;
+	}
 
 	if (ctx->pipeline == CRYPTO_PIPELINE_COMPRESS
 			|| ctx->pipeline == CRYPTO_PIPELINE_COMPRESS_ENCRYPT_DIGEST)
@@ -555,12 +558,14 @@ static char *build_out_filename(struct rl_context *ctx, size_t buf_size, char *b
 			size_t buf_off = fname_len - ext_len;
 
 			result = strcmp(&buf[buf_off], ext);
-			if (result == 0)
-				buf[buf_off] = '\0';
+			if (result != 0)
+				return -1;
+
+			buf[buf_off] = '\0';
 		}
 	}
 
-	return buf;
+	return 0;
 }
 
 static int open_files(int in_dir_fd, const char *in_filename, int out_dir_fd, const char *out_filename, FILE **infp, FILE **outfp)
@@ -1173,18 +1178,23 @@ int main_local(struct opt *opts)
 
 		if (cmd_accepts_out)
 		{
+			result = 0;
+
 			if (out_is_dir)
 			{
-				build_out_filename(&ctx, sizeof(out_filename_buf), out_filename_buf, my_basename(in_filename), 0);
+				result = build_out_filename(&ctx, sizeof(out_filename_buf), out_filename_buf, my_basename(in_filename), 0);
 				out_filename = out_filename_buf;
 			}
 			else if (has_out)
 				out_filename = get_opt_str(opts, OPT_OUT);
 			else
 			{
-				build_out_filename(&ctx, sizeof(out_filename_buf), out_filename_buf, in_filename, 0);
+				result = build_out_filename(&ctx, sizeof(out_filename_buf), out_filename_buf, in_filename, 0);
 				out_filename = out_filename_buf;
 			}
+
+			if (result < 0)
+				continue;
 		}
 
 		result = open_files(in_dir_fd, in_filename, out_dir_fd, out_filename, &infp, &outfp);
@@ -1225,7 +1235,7 @@ fail_digest:
 			fclose(outfp);
 		if (infp)
 			fclose(infp);
-//fprintf(stderr, "\n===== %s - %s =====\n", in_filename, out_filename);
+
 fail_open:
 		if (cmd_accepts_out)
 		{
