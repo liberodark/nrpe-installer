@@ -350,7 +350,7 @@ main (int argc, char **argv)
 
 	/* if total_swap_mb == 0, swap is most likely missing or disabled and should go critical */
 	if(total_swap_mb == 0) {
-		percent_used = 100;
+		percent_used = 0;
 		status = "- Swap is either disabled, not present, or of zero size. ";
 	} else if(total_swap_mb > 0) {
 		percent_used = 100 * ((double) used_swap_mb) / ((double) total_swap_mb);
@@ -360,6 +360,9 @@ main (int argc, char **argv)
 	}
 
 	result = max_state (result, check_swap (percent_used, free_swap_mb));
+	if (total_swap_mb == 0)
+		result = STATE_OK;
+
 	printf (_("SWAP %s - %d%% free (%d MB out of %d MB) %s|"),
 			state_text (result),
 			(100 - percent_used), (int) free_swap_mb, (int) total_swap_mb, status);
