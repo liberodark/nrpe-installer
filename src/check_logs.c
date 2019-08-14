@@ -14,7 +14,7 @@
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 
-#define BLOCK_SIZE 16384
+#define BLOCK_SIZE 2 * 1024 * 1024
 #define PASSWORD_SALT "Z9h)'%$*"
 
 #define DEFAULT_FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
@@ -34,6 +34,7 @@ enum opt_id
 	OPT_IN_PATH,
 	OPT_KEEP,
 	OPT_LOCK,
+	OPT_MOVE,
 	OPT_OUT,
 	OPT_OUT_PATH,
 	OPT_THEN,
@@ -475,7 +476,8 @@ struct opt_data_cron *get_opt_cron(struct opt *opts, enum opt_id id)
 
 enum crypto_pipeline_id
 {
-	CRYPTO_PIPELINE_COMPRESS = 0,
+	CRYPTO_PIPELINE_COPY = 0,
+	CRYPTO_PIPELINE_COMPRESS,
 	CRYPTO_PIPELINE_EXTRACT,
 	CRYPTO_PIPELINE_COMPRESS_ENCRYPT_DIGEST,
 	CRYPTO_PIPELINE_DIGEST_DECRYPT_EXTRACT,
@@ -508,6 +510,12 @@ struct rl_context
 	EVP_CIPHER_CTX *cipher_ctx;
 	const EVP_MD *digest_type;
 	EVP_MD_CTX *digest_ctx;
+	unsigned char readbuf[BLOCK_SIZE];
+	unsigned char lzmabuf[BLOCK_SIZE];
+	unsigned char cryptobuf[BLOCK_SIZE + EVP_MAX_BLOCK_LENGTH];
+	unsigned char writebuf[BLOCK_SIZE];
+	unsigned char digestbuf[2 * EVP_MAX_MD_SIZE + 5];
+	unsigned char digestchkbuf[2 * EVP_MAX_MD_SIZE + 5];
 };
 
 static int build_out_filename(struct rl_context *ctx, size_t buf_size, char *buf, const char *in_filename, int is_digest)
@@ -520,7 +528,7 @@ static int build_out_filename(struct rl_context *ctx, size_t buf_size, char *buf
 
 	if (is_digest)
 	{
-		strncat(buf, ".sha", buf_size);
+		strncat(buf, ".sha256", buf_size);
 		return 0;
 	}
 
@@ -531,6 +539,8 @@ static int build_out_filename(struct rl_context *ctx, size_t buf_size, char *buf
 		const char *ext = ctx->pipeline == CRYPTO_PIPELINE_COMPRESS ? ".xz" : ".xz.aes";
 
 		old_ext = strrchr(in_filename, '.');
+		if (old_ext == in_filename)
+			old_ext = NULL;
 		if (old_ext)
 			buf[(uintptr_t)old_ext - (uintptr_t)in_filename] = '\0';
 
@@ -563,60 +573,48 @@ static int build_out_filename(struct rl_context *ctx, size_t buf_size, char *buf
 
 			buf[buf_off] = '\0';
 		}
+		else
+			return -1;
 	}
 
 	return 0;
 }
 
-static int open_files(int in_dir_fd, const char *in_filename, int out_dir_fd, const char *out_filename, FILE **infp, FILE **outfp)
+static int open_files(int in_dir_fd, const char *in_filename, int out_dir_fd, const char *out_filename, int *infd, int *outfd)
 {
 	int result;
 	struct stat st;
-	int infd = -1, outfd = -1;
 
 	if (in_filename)
 	{
-		*infp = NULL;
+		*infd = -1;
 
 		result = fstatat(in_dir_fd, in_filename, &st, 0);
-		if (result < 0 || !S_ISREG(st.st_mode))
+		if (result < 0
+				|| (!S_ISCHR(st.st_mode) && !S_ISBLK(st.st_mode) && !S_ISREG(st.st_mode)
+					&& !S_ISFIFO(st.st_mode) && !S_ISLNK(st.st_mode) && ! S_ISSOCK(st.st_mode)))
 			goto fail;
 
-		infd = openat(in_dir_fd, in_filename, O_RDONLY);
-		if (infd < 0)
-			goto fail;
-
-		*infp = fdopen(infd, "rb");
-		infd = -1;
-		if (!*infp)
+		*infd = openat(in_dir_fd, in_filename, O_RDONLY);
+		if (*infd < 0)
 			goto fail;
 	}
 
 	if (out_filename)
 	{
-		*outfp = NULL;
-
-		outfd = openat(out_dir_fd, out_filename, O_CREAT | O_WRONLY, DEFAULT_FILE_MODE);
-		if (outfd < 0)
-			goto fail;
-
-		*outfp = fdopen(outfd, "wb");
-		outfd = -1;
-		if (!*outfp)
+		*outfd = openat(out_dir_fd, out_filename, O_CREAT | O_WRONLY, DEFAULT_FILE_MODE);
+		if (*outfd < 0)
 			goto fail;
 	}
 
 	return 0;
 
 fail:
-	if (outfd >= 0)
-		close(outfd);
+	if (out_filename && *outfd >= 0)
+		close(*outfd);
 
-	if (infp && *infp)
-		fclose(*infp);
-
-	if (infd >= 0)
-		close(infd);
+	if (in_filename && *infd >= 0)
+		close(*infd);
 
 	return -1;
 }
@@ -634,7 +632,7 @@ enum crypto_step_id
 struct crypto_step
 {
 	enum crypto_step_id step;
-	FILE *fp;
+	int fd;
 	size_t inbuf_size;
 	/* Can be used to track the last busy read */
 	size_t inbuf_idx;
@@ -646,59 +644,64 @@ struct crypto_step
 	unsigned int busy : 1;
 };
 
-int do_crypto(struct rl_context *ctx, FILE *infp, FILE *outfp, FILE *digestinoutfp)
+int do_crypto(struct rl_context *ctx, int infd, int outfd, int digestinoutfd)
 {
 	int status = -1;
 	lzma_ret lzret;
 	int result;
-	unsigned char readbuf[BLOCK_SIZE];
-	unsigned char lzmabuf[BLOCK_SIZE];
-	unsigned char cryptobuf[BLOCK_SIZE + EVP_MAX_BLOCK_LENGTH];
-	unsigned char writebuf[BLOCK_SIZE];
-	unsigned char digestbuf[2 * EVP_MAX_MD_SIZE + 5] = {0};
-	unsigned char digestchkbuf[2 * EVP_MAX_MD_SIZE + 5] = {0};
 
-#define CRYPTO_STEPD(s, inb, outb, f) { .step = (s), .fp = (f), .inbuf_size = 0, .inbuf_idx = 0, .inbuf = (inb), .outbuf_size = sizeof(outb), .outbuf = (outb), .eof = 0, .busy = 0 }
-#define CRYPTO_STEP(s, inb, outb) CRYPTO_STEPD(s, inb, outb, NULL)
-#define CRYPTO_STEPI(s, f, outb) CRYPTO_STEPD(s, NULL, outb, f)
-#define CRYPTO_STEPO(s, inb, f) CRYPTO_STEPD(s, inb, NULL, f)
-#define CRYPTO_STEP_END() CRYPTO_STEP(CRYPTO_STEP_COUNT, NULL, NULL)
+#define CRYPTO_STEPD(s, inb, outb, f) { .step = (s), .fd = (f), .inbuf = ctx->inb, .outbuf_size = sizeof(ctx->outb), .outbuf = ctx->outb }
+#define CRYPTO_STEP(s, inb, outb)     { .step = (s), .fd = -1,  .inbuf = ctx->inb, .outbuf_size = sizeof(ctx->outb), .outbuf = ctx->outb }
+#define CRYPTO_STEPI(s, f, outb)      { .step = (s), .fd = (f), .inbuf = NULL,     .outbuf_size = sizeof(ctx->outb), .outbuf = ctx->outb }
+#define CRYPTO_STEPO(s, inb, f)       { .step = (s), .fd = (f), .inbuf = ctx->inb, .outbuf_size = 0,                 .outbuf = NULL      }
+#define CRYPTO_STEP_END()             { .step = CRYPTO_STEP_COUNT }
+	struct crypto_step copy_steps[] = {
+		CRYPTO_STEPI(CRYPTO_STEP_READ,  infd,    readbuf),
+		CRYPTO_STEPO(CRYPTO_STEP_WRITE, readbuf, outfd),
+		CRYPTO_STEP_END()
+	};
 	struct crypto_step compress_steps[] = {
-		CRYPTO_STEPI(CRYPTO_STEP_READ,  infp,    readbuf),
+		CRYPTO_STEPI(CRYPTO_STEP_READ,  infd,    readbuf),
 		CRYPTO_STEP (CRYPTO_STEP_LZMA,  readbuf, lzmabuf),
-		CRYPTO_STEPO(CRYPTO_STEP_WRITE, lzmabuf, outfp),
+		CRYPTO_STEPO(CRYPTO_STEP_WRITE, lzmabuf, outfd),
 		CRYPTO_STEP_END()
 	};
 	struct crypto_step extract_steps[] = {
-		CRYPTO_STEPI(CRYPTO_STEP_READ,  infp,    readbuf),
+		CRYPTO_STEPI(CRYPTO_STEP_READ,  infd,    readbuf),
 		CRYPTO_STEP (CRYPTO_STEP_LZMA,  readbuf, lzmabuf),
-		CRYPTO_STEPO(CRYPTO_STEP_WRITE, lzmabuf, outfp),
+		CRYPTO_STEPO(CRYPTO_STEP_WRITE, lzmabuf, outfd),
 		CRYPTO_STEP_END()
 	};
 	struct crypto_step compress_encrypt_digest_steps[] = {
-		CRYPTO_STEPI(CRYPTO_STEP_READ,   infp,      readbuf),
+		CRYPTO_STEPI(CRYPTO_STEP_READ,   infd,      readbuf),
 		CRYPTO_STEP (CRYPTO_STEP_LZMA,   readbuf,   lzmabuf),
 		CRYPTO_STEP (CRYPTO_STEP_CRYPTO, lzmabuf,   cryptobuf),
-		CRYPTO_STEPD(CRYPTO_STEP_WRITE,  cryptobuf, writebuf, outfp),
+		CRYPTO_STEPD(CRYPTO_STEP_WRITE,  cryptobuf, writebuf, outfd),
 		CRYPTO_STEP (CRYPTO_STEP_DIGEST, writebuf,  digestbuf),
-		CRYPTO_STEPO(CRYPTO_STEP_WRITE,  digestbuf, digestinoutfp),
+		CRYPTO_STEPO(CRYPTO_STEP_WRITE,  digestbuf, digestinoutfd),
 		CRYPTO_STEP_END()
 	};
 	struct crypto_step digest_decrypt_extract_steps[] = {
-		CRYPTO_STEPI(CRYPTO_STEP_READ,   infp,      readbuf),
+		CRYPTO_STEPI(CRYPTO_STEP_READ,   infd,      readbuf),
 		CRYPTO_STEP( CRYPTO_STEP_CRYPTO, readbuf,   cryptobuf),
 		CRYPTO_STEP( CRYPTO_STEP_LZMA,   cryptobuf, lzmabuf),
-		CRYPTO_STEPO(CRYPTO_STEP_WRITE,  lzmabuf,   outfp),
+		CRYPTO_STEPO(CRYPTO_STEP_WRITE,  lzmabuf,   outfd),
 		CRYPTO_STEP_END()
 	};
 	struct crypto_step digest_steps[] = {
-		CRYPTO_STEPI(CRYPTO_STEP_READ,   digestinoutfp, digestchkbuf),
-		CRYPTO_STEPI(CRYPTO_STEP_READ,   infp,          readbuf),
+		CRYPTO_STEPI(CRYPTO_STEP_READ,   digestinoutfd, digestchkbuf),
+		CRYPTO_STEPI(CRYPTO_STEP_READ,   infd,          readbuf),
 		CRYPTO_STEP (CRYPTO_STEP_DIGEST, readbuf,       digestbuf),
 		CRYPTO_STEP_END()
 	};
+#undef CRYPTO_STEPD
 #undef CRYPTO_STEP
+#undef CRYPTO_STEPI
+#undef CRYPTO_STEPO
+#undef CRYPTO_STEP_END
+
 	struct crypto_step *crypto_pipelines[CRYPTO_PIPELINE_COUNT] = {
+		[CRYPTO_PIPELINE_COPY] = copy_steps,
 		[CRYPTO_PIPELINE_COMPRESS] = compress_steps,
 		[CRYPTO_PIPELINE_EXTRACT] = extract_steps,
 		[CRYPTO_PIPELINE_COMPRESS_ENCRYPT_DIGEST] = compress_encrypt_digest_steps,
@@ -746,6 +749,9 @@ int do_crypto(struct rl_context *ctx, FILE *infp, FILE *outfp, FILE *digestinout
 
 	if (ctx->pipeline_has_in_digest || ctx->pipeline_has_out_digest)
 	{
+		memset(ctx->digestbuf, 0, sizeof(ctx->digestbuf));
+		memset(ctx->digestchkbuf, 0, sizeof(ctx->digestchkbuf));
+
 		result = EVP_DigestInit(ctx->digest_ctx, ctx->digest_type);
 		if (!result)
 			goto fail_digest_init;
@@ -784,14 +790,17 @@ int do_crypto(struct rl_context *ctx, FILE *infp, FILE *outfp, FILE *digestinout
 			{
 				case CRYPTO_STEP_READ:
 				{
-					size_t rsize;
+					size_t isize;
+					ssize_t rsize;
 
-					rsize = fread(step->outbuf, 1, step->outbuf_size, step->fp);
-					if (ferror(step->fp))
+					rsize = read(step->fd, step->outbuf, step->outbuf_size);
+					if (rsize < 0)
 						goto fail_process;
 
-					step->eof = feof(step->fp);
-					next_step->inbuf_size = rsize;
+					isize = (size_t)rsize;
+
+					step->eof = isize == 0;
+					next_step->inbuf_size = isize;
 					break;
 				}
 
@@ -914,18 +923,22 @@ int do_crypto(struct rl_context *ctx, FILE *infp, FILE *outfp, FILE *digestinout
 				{
 					size_t osize = step->inbuf_size;
 
+					if (next_step)
+						osize = mini(osize, step->outbuf_size);
+
 					if (!step->busy && step->inbuf_size)
 					{
-						fwrite(step->inbuf, 1, step->inbuf_size, step->fp);
-						if (ferror(outfp))
+						ssize_t wsize;
+
+						wsize = write(step->fd, step->inbuf, osize);
+						if (wsize < 0)
 							goto fail_process;
+
+						osize = (size_t)wsize;
 					}
 
 					if (next_step)
-					{
-						osize = mini(step->inbuf_size, step->outbuf_size);
 						memcpy(step->outbuf, &step->inbuf[step->inbuf_idx], osize);
-					}
 
 					step->inbuf_idx = osize;
 					step->inbuf_size -= step->inbuf_idx;
@@ -953,7 +966,7 @@ int do_crypto(struct rl_context *ctx, FILE *infp, FILE *outfp, FILE *digestinout
 
 	if (ctx->pipeline == CRYPTO_PIPELINE_DIGEST)
 	{
-		result = memcmp(digestchkbuf, digestbuf, 2 * EVP_MD_size(ctx->digest_type));
+		result = memcmp(ctx->digestchkbuf, ctx->digestbuf, 2 * EVP_MD_size(ctx->digest_type));
 		if (result != 0)
 			goto fail_process;
 	}
@@ -1008,11 +1021,11 @@ int main_local(struct opt *opts)
 	int status = 1;
 	int result;
 	time_t now;
+	struct rl_context *ctx;
 	int cmd_accepts_out;
 	int in_is_dir;
 	int has_out;
 	int out_is_dir;
-	struct rl_context ctx;
 	int in_dir_fd;
 	DIR *in_dir;
 	int out_dir_fd;
@@ -1020,87 +1033,94 @@ int main_local(struct opt *opts)
 
 	now = time(NULL);
 
+	ctx = calloc(1, sizeof(*ctx));
+	if (!ctx)
+		goto fail_alloc_ctx;
+
 	cmd_accepts_out = get_opt_defined(opts, OPT_ENCRYPT) || get_opt_defined(opts, OPT_DECRYPT)
-			|| get_opt_defined(opts, OPT_COMPRESS) || get_opt_defined(opts, OPT_EXTRACT);
+			|| get_opt_defined(opts, OPT_COMPRESS) || get_opt_defined(opts, OPT_EXTRACT)
+			|| get_opt_defined(opts, OPT_MOVE);
 
 	in_is_dir = get_opt_defined(opts, OPT_IN_PATH);
 	has_out = get_opt_defined(opts, OPT_OUT_PATH) || get_opt_defined(opts, OPT_OUT);
 	out_is_dir = get_opt_defined(opts, OPT_OUT_PATH);
 
-	ctx.pipeline_has_encrypt = get_opt_defined(opts, OPT_ENCRYPT);
-	ctx.pipeline_has_decrypt = get_opt_defined(opts, OPT_DECRYPT);
-	ctx.pipeline_has_compress = get_opt_defined(opts, OPT_ENCRYPT) || get_opt_defined(opts, OPT_COMPRESS);
-	ctx.pipeline_has_extract = get_opt_defined(opts, OPT_DECRYPT) || get_opt_defined(opts, OPT_EXTRACT);
-	ctx.pipeline_has_in_digest = get_opt_defined(opts, OPT_DECRYPT) || get_opt_defined(opts, OPT_CHECK);
-	ctx.pipeline_has_out_digest = get_opt_defined(opts, OPT_ENCRYPT);
+	ctx->pipeline_has_encrypt = get_opt_defined(opts, OPT_ENCRYPT);
+	ctx->pipeline_has_decrypt = get_opt_defined(opts, OPT_DECRYPT);
+	ctx->pipeline_has_compress = get_opt_defined(opts, OPT_ENCRYPT) || get_opt_defined(opts, OPT_COMPRESS);
+	ctx->pipeline_has_extract = get_opt_defined(opts, OPT_DECRYPT) || get_opt_defined(opts, OPT_EXTRACT);
+	ctx->pipeline_has_in_digest = get_opt_defined(opts, OPT_DECRYPT) || get_opt_defined(opts, OPT_CHECK);
+	ctx->pipeline_has_out_digest = get_opt_defined(opts, OPT_ENCRYPT);
 
-	ctx.pipeline = CRYPTO_PIPELINE_COUNT;
-	if (ctx.pipeline_has_encrypt)
-		ctx.pipeline = CRYPTO_PIPELINE_COMPRESS_ENCRYPT_DIGEST;
-	else if (ctx.pipeline_has_decrypt)
-		ctx.pipeline = CRYPTO_PIPELINE_DIGEST_DECRYPT_EXTRACT;
-	else if (ctx.pipeline_has_compress)
-		ctx.pipeline = CRYPTO_PIPELINE_COMPRESS;
-	else if (ctx.pipeline_has_extract)
-		ctx.pipeline = CRYPTO_PIPELINE_EXTRACT;
-	else if (ctx.pipeline_has_in_digest)
-		ctx.pipeline = CRYPTO_PIPELINE_DIGEST;
+	ctx->pipeline = CRYPTO_PIPELINE_COUNT;
+	if (ctx->pipeline_has_encrypt)
+		ctx->pipeline = CRYPTO_PIPELINE_COMPRESS_ENCRYPT_DIGEST;
+	else if (ctx->pipeline_has_decrypt)
+		ctx->pipeline = CRYPTO_PIPELINE_DIGEST_DECRYPT_EXTRACT;
+	else if (ctx->pipeline_has_compress)
+		ctx->pipeline = CRYPTO_PIPELINE_COMPRESS;
+	else if (ctx->pipeline_has_extract)
+		ctx->pipeline = CRYPTO_PIPELINE_EXTRACT;
+	else if (ctx->pipeline_has_in_digest)
+		ctx->pipeline = CRYPTO_PIPELINE_DIGEST;
+	else
+		ctx->pipeline = CRYPTO_PIPELINE_COPY;
 
-	if (ctx.pipeline_has_compress || ctx.pipeline_has_extract)
+	if (ctx->pipeline_has_compress || ctx->pipeline_has_extract)
 	{
-		ctx.lzma_filter = LZMA_FILTER_LZMA2;
-		ctx.lzma_check = LZMA_CHECK_CRC64;
-		ctx.lzma_preset = 5 | LZMA_PRESET_EXTREME;
-		ctx.lzma_threads = get_opt_defined(opts, OPT_THREADS) ? get_opt_int(opts, OPT_THREADS) : 1;
-		ctx.lzma_mem_limit = UINT64_MAX;
-		ctx.lzma_stream = (lzma_stream)LZMA_STREAM_INIT;
+		ctx->lzma_filter = LZMA_FILTER_LZMA2;
+		ctx->lzma_check = LZMA_CHECK_CRC64;
+		ctx->lzma_preset = 5 | LZMA_PRESET_EXTREME;
+		ctx->lzma_threads = get_opt_defined(opts, OPT_THREADS) ? get_opt_int(opts, OPT_THREADS) : 1;
+		ctx->lzma_mem_limit = UINT64_MAX;
+		ctx->lzma_stream = (lzma_stream)LZMA_STREAM_INIT;
 
-		if (ctx.pipeline_has_compress && !lzma_filter_encoder_is_supported(ctx.lzma_filter))
+		if (ctx->pipeline_has_compress && !lzma_filter_encoder_is_supported(ctx->lzma_filter))
 			goto fail_lzma_settings;
 
-		if (!ctx.pipeline_has_extract && !lzma_filter_decoder_is_supported(ctx.lzma_filter))
+		if (!ctx->pipeline_has_extract && !lzma_filter_decoder_is_supported(ctx->lzma_filter))
 			goto fail_lzma_settings;
 
-		if (!lzma_check_is_supported(ctx.lzma_check))
+		if (!lzma_check_is_supported(ctx->lzma_check))
 			goto fail_lzma_settings;
 
-		if (lzma_lzma_preset(&ctx.lzma_options, ctx.lzma_preset))
+		if (lzma_lzma_preset(&ctx->lzma_options, ctx->lzma_preset))
 			goto fail_lzma_settings;
 	}
 
-	if (ctx.pipeline_has_encrypt || ctx.pipeline_has_decrypt)
+	if (ctx->pipeline_has_encrypt || ctx->pipeline_has_decrypt)
 	{
 		const char *password;
 
-		ctx.cipher = EVP_aes_256_cbc();
-		ctx.hash = EVP_sha256();
-		ctx.hash_rounds = 5;
+		ctx->cipher = EVP_aes_256_cbc();
+		ctx->hash = EVP_sha256();
+		ctx->hash_rounds = 5;
 
-		memset(ctx.salt, '\0', sizeof(ctx.salt));
-		memcpy(ctx.salt, PASSWORD_SALT, mini(sizeof(ctx.salt), sizeof(PASSWORD_SALT)));
+		memset(ctx->salt, '\0', sizeof(ctx->salt));
+		memcpy(ctx->salt, PASSWORD_SALT, mini(sizeof(ctx->salt), sizeof(PASSWORD_SALT)));
 
-		OPENSSL_assert(EVP_CIPHER_key_length(ctx.cipher) == sizeof(ctx.key));
-		OPENSSL_assert(EVP_CIPHER_iv_length(ctx.cipher) == sizeof(ctx.iv));
+		OPENSSL_assert(EVP_CIPHER_key_length(ctx->cipher) == sizeof(ctx->key));
+		OPENSSL_assert(EVP_CIPHER_iv_length(ctx->cipher) == sizeof(ctx->iv));
 
-		password = ctx.pipeline_has_encrypt ? get_opt_str(opts, OPT_ENCRYPT) : get_opt_str(opts, OPT_DECRYPT);
+		password = ctx->pipeline_has_encrypt ? get_opt_str(opts, OPT_ENCRYPT) : get_opt_str(opts, OPT_DECRYPT);
 
-		result = EVP_BytesToKey(ctx.cipher, ctx.hash,
-				ctx.salt,
+		result = EVP_BytesToKey(ctx->cipher, ctx->hash,
+				ctx->salt,
 				(unsigned char *)password, strlen(password),
-				ctx.hash_rounds, ctx.key, ctx.iv);
+				ctx->hash_rounds, ctx->key, ctx->iv);
 
-		OPENSSL_assert(result == sizeof(ctx.key));
+		OPENSSL_assert(result == sizeof(ctx->key));
 
-		ctx.cipher_ctx = EVP_CIPHER_CTX_new();
-		if (!ctx.cipher_ctx)
+		ctx->cipher_ctx = EVP_CIPHER_CTX_new();
+		if (!ctx->cipher_ctx)
 			goto fail_cipher_ctx_new;
 	}
 
-	if (ctx.pipeline_has_in_digest || ctx.pipeline_has_out_digest)
+	if (ctx->pipeline_has_in_digest || ctx->pipeline_has_out_digest)
 	{
-		ctx.digest_type = EVP_sha256();
-		ctx.digest_ctx = EVP_MD_CTX_new();
-		if (!ctx.digest_ctx)
+		ctx->digest_type = EVP_sha256();
+		ctx->digest_ctx = EVP_MD_CTX_new();
+		if (!ctx->digest_ctx)
 			goto fail_digest_ctx_new;
 	}
 
@@ -1154,7 +1174,7 @@ int main_local(struct opt *opts)
 		char out_filename_buf[4096];
 		const char *out_filename = NULL;
 		char digest_filename_buf[4096];
-		FILE *infp = NULL, *outfp = NULL, *digestfp = NULL;
+		int infd = -1, outfd = -1, digestfd = -1;
 
 		first_loop = 0;
 
@@ -1182,14 +1202,14 @@ int main_local(struct opt *opts)
 
 			if (out_is_dir)
 			{
-				result = build_out_filename(&ctx, sizeof(out_filename_buf), out_filename_buf, my_basename(in_filename), 0);
+				result = build_out_filename(ctx, sizeof(out_filename_buf), out_filename_buf, my_basename(in_filename), 0);
 				out_filename = out_filename_buf;
 			}
 			else if (has_out)
 				out_filename = get_opt_str(opts, OPT_OUT);
 			else
 			{
-				result = build_out_filename(&ctx, sizeof(out_filename_buf), out_filename_buf, in_filename, 0);
+				result = build_out_filename(ctx, sizeof(out_filename_buf), out_filename_buf, in_filename, 0);
 				out_filename = out_filename_buf;
 			}
 
@@ -1197,7 +1217,16 @@ int main_local(struct opt *opts)
 				continue;
 		}
 
-		result = open_files(in_dir_fd, in_filename, out_dir_fd, out_filename, &infp, &outfp);
+		if (get_opt_defined(opts, OPT_MOVE))
+		{
+			if (!get_opt_defined(opts, OPT_KEEP))
+			{
+				renameat(in_dir_fd, in_filename, out_dir_fd, out_filename);
+				continue;
+			}
+		}
+
+		result = open_files(in_dir_fd, in_filename, out_dir_fd, out_filename, &infd, &outfd);
 		if (result < 0)
 		{
 			if (!in_is_dir)
@@ -1205,36 +1234,36 @@ int main_local(struct opt *opts)
 			continue;
 		}
 
-		if (ctx.pipeline_has_in_digest)
+		if (ctx->pipeline_has_in_digest)
 		{
-			build_out_filename(&ctx, sizeof(digest_filename_buf), digest_filename_buf, in_filename, 1);
-			result = open_files(in_dir_fd, digest_filename_buf, -1, NULL, &digestfp, NULL);
+			build_out_filename(ctx, sizeof(digest_filename_buf), digest_filename_buf, in_filename, 1);
+			result = open_files(in_dir_fd, digest_filename_buf, -1, NULL, &digestfd, NULL);
 			if (result < 0)
 			{
-				/* Just ignore the file if it was specified by -in-path and there is no matching .sha file */
+				/* Just ignore the file if it was specified by -in-path and there is no matching .sha256 file */
 				if (in_is_dir)
 					dont_panic = 1;
 				goto fail_digest;
 			}
 		}
-		else if (ctx.pipeline_has_out_digest && cmd_accepts_out)
+		else if (ctx->pipeline_has_out_digest && cmd_accepts_out)
 		{
-			build_out_filename(&ctx, sizeof(digest_filename_buf), digest_filename_buf, out_filename, 1);
-			result = open_files(-1, NULL, out_dir_fd, digest_filename_buf, NULL, &digestfp);
+			build_out_filename(ctx, sizeof(digest_filename_buf), digest_filename_buf, out_filename, 1);
+			result = open_files(-1, NULL, out_dir_fd, digest_filename_buf, NULL, &digestfd);
 			if (result < 0)
 				goto fail_digest;
 		}
 
-		result = do_crypto(&ctx, infp, outfp, digestfp);
+		result = do_crypto(ctx, infd, outfd, digestfd);
 
-		if (digestfp)
-			fclose(digestfp);
+		if (digestfd)
+			close(digestfd);
 
 fail_digest:
-		if (outfp)
-			fclose(outfp);
-		if (infp)
-			fclose(infp);
+		if (outfd)
+			close(outfd);
+		if (infd)
+			close(infd);
 
 fail_open:
 		if (cmd_accepts_out)
@@ -1244,14 +1273,14 @@ fail_open:
 				if (!get_opt_defined(opts, OPT_KEEP))
 				{
 					unlinkat(in_dir_fd, in_filename, 0);
-					if (ctx.pipeline_has_in_digest)
+					if (ctx->pipeline_has_in_digest)
 						unlinkat(in_dir_fd, digest_filename_buf, 0);
 				}
 			}
 			else
 			{
 				unlinkat(out_dir_fd, out_filename, 0);
-				if (ctx.pipeline_has_out_digest)
+				if (ctx->pipeline_has_out_digest)
 					unlinkat(out_dir_fd, digest_filename_buf, 0);
 			}
 		}
@@ -1271,15 +1300,18 @@ fail_open_out:
 		closedir(in_dir);
 
 fail_open_in:
-	if (ctx.pipeline_has_in_digest || ctx.pipeline_has_out_digest)
-		EVP_MD_CTX_free(ctx.digest_ctx);
+	if (ctx->pipeline_has_in_digest || ctx->pipeline_has_out_digest)
+		EVP_MD_CTX_free(ctx->digest_ctx);
 
 fail_digest_ctx_new:
-	if (ctx.pipeline_has_encrypt || ctx.pipeline_has_decrypt)
-		EVP_CIPHER_CTX_free(ctx.cipher_ctx);
+	if (ctx->pipeline_has_encrypt || ctx->pipeline_has_decrypt)
+		EVP_CIPHER_CTX_free(ctx->cipher_ctx);
 
 fail_cipher_ctx_new:
 fail_lzma_settings:
+	free(ctx);
+
+fail_alloc_ctx:
 	return status;
 }
 
@@ -1296,6 +1328,19 @@ int print_usage(int argc, char **argv)
 			"                             Requires -lock\n"
 			"                             Refer to the <cron_spec> section\n"
 			"\n"
+			"<cron_spec>: Simplified cron expression, must be one of the following:\n"
+			"    <M> <H> <d> <m>          Any of them can be either a number, * or */<n>, with:\n"
+			"                                 <M>: Minute [0-59]\n"
+			"                                 <H>: Hour [0-23]\n"
+			"                                 <d>: Day of the month [1-31]\n"
+			"                                 <m>: Month [1-12]\n"
+			"    @hourly                  Same as 0 * * *\n"
+			"    @daily                   Same as 0 0 * *\n"
+			"    @midnight                Same as @daily\n"
+			"    @monthly                 Same as 0 0 1 *\n"
+			"    @annually                Same as 0 0 1 1\n"
+			"    @yearly                  Same as @annually\n"
+			"\n"
 			"<action>: Must be exactly one of the following:\n"
 			"    -encrypt <password>      Compress, encrypt and produce a hash\n"
 			"    -decrypt <password>      Check the hash, decrypt and extract\n"
@@ -1304,6 +1349,7 @@ int print_usage(int argc, char **argv)
 			"    -check                   Check the hash\n"
 			"    -clean <duration>        Remove files older than <duration>\n"
 			"                             Refer to the <duration> section\n"
+			"    -move                    Move the files to a destination\n"
 			"\n"
 			"<path_spec>: Can be a combination of the following:\n"
 			"    -in-path <dir>           The input directory\n"
@@ -1325,19 +1371,6 @@ int print_usage(int argc, char **argv)
 			"The resulting <duration> is the sum of all individual durations\n"
 			"(e.g. 3m1d1h2h is 3 months + 1 day + 3 hours)\n"
 			"\n"
-			"<cron_spec>: Simplified cron expression, must be one of the following:\n"
-			"    <M> <H> <d> <m>          Any of them can be either a number, * or */<n>, with:\n"
-			"                                 <M>: Minute [0-59]\n"
-			"                                 <H>: Hour [0-23]\n"
-			"                                 <d>: Day of the month [1-31]\n"
-			"                                 <m>: Month [1-12]\n"
-			"    @hourly                  Same as 0 * * *\n"
-			"    @daily                   Same as 0 0 * *\n"
-			"    @midnight                Same as @daily\n"
-			"    @monthly                 Same as 0 0 1 *\n"
-			"    @annually                Same as 0 0 1 1\n"
-			"    @yearly                  Same as @annually\n"
-			"\n"
 			"Available <action> and <path_spec> combinations:\n"
 			"    -encrypt <password> -in-path <dir> [-out-path <dir>]\n"
 			"    -encrypt <password> -in <file> [-out-path <dir> | -out <file>]\n"
@@ -1355,7 +1388,11 @@ int print_usage(int argc, char **argv)
 			"    -check -in <file>\n"
 			"\n"
 			"    -clean <duration> -in-path <dir>\n"
-			"    -clean <duration> -in <file>\n", (argc >= 1) ? argv[0] : "rotate_logs");
+			"    -clean <duration> -in <file>\n"
+			"\n"
+			"    -move -in-path <dir> -out-path <dir>\n"
+			"    -move -in <file> -out-path <dir>\n"
+			"    -move -in <file> -out <file>\n", (argc >= 1) ? argv[0] : "rotate_logs");
 	return 1;
 }
 
@@ -1388,6 +1425,7 @@ int main (int argc, char **argv)
 		OPT_STR(OPT_IN_PATH, "-in-path", 0),
 		OPT_NONE(OPT_KEEP, "-keep", 0),
 		OPT_STR(OPT_LOCK, "-lock", 1),
+		OPT_NONE(OPT_MOVE, "-move", 0),
 		OPT_STR(OPT_OUT, "-out", 0),
 		OPT_STR(OPT_OUT_PATH, "-out-path", 0),
 		OPT_THEN(OPT_THEN, "-then", 0),
@@ -1413,15 +1451,20 @@ int main (int argc, char **argv)
 	{
 		struct opt *opts = opt_frames[i];
 
+		int cmd_requires_out = get_opt_defined(opts, OPT_MOVE);
 		int cmd_accepts_out = get_opt_defined(opts, OPT_ENCRYPT) || get_opt_defined(opts, OPT_DECRYPT)
-				|| get_opt_defined(opts, OPT_COMPRESS) || get_opt_defined(opts, OPT_EXTRACT);
+				|| get_opt_defined(opts, OPT_COMPRESS) || get_opt_defined(opts, OPT_EXTRACT)
+				|| cmd_requires_out;
 		int has_out = get_opt_defined(opts, OPT_OUT_PATH) || get_opt_defined(opts, OPT_OUT);
 
 		if (
 				/* There must be exactly one <action> */
 				(get_opt_defined(opts, OPT_ENCRYPT) + get_opt_defined(opts, OPT_DECRYPT)
 					+ get_opt_defined(opts, OPT_COMPRESS) + get_opt_defined(opts, OPT_EXTRACT)
-					+ get_opt_defined(opts, OPT_CHECK) + get_opt_defined(opts, OPT_CLEAN) != 1)
+					+ get_opt_defined(opts, OPT_CHECK) + get_opt_defined(opts, OPT_CLEAN)
+					+ get_opt_defined(opts, OPT_MOVE) != 1)
+				/* -out-path or -out is mandatory for the <action> */
+				|| (cmd_requires_out && !has_out)
 				/* -out-path and -out are disallowed if the <action> does not accept output */
 				|| (!cmd_accepts_out && has_out)
 				/* There must be exactly one of -in-path or -in */
