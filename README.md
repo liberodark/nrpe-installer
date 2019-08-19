@@ -29,6 +29,8 @@ git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && c
 ```
 gcc check_cpu.c -o check_cpu -std=gnu99
 gcc -g check_logs.c -o check_logs -lcrypto -llzma -std=gnu99
+yum install PackageKit-glib-devel or apt install libpackagekit-glib2-dev
+gcc -g check_updates.c -o check_updates $(pkg-config --cflags --libs glib-2.0 packagekit-glib2) -std=gnu99
 ```
 check_swap need nrpe-plugin for compile.
 
