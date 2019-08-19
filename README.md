@@ -34,6 +34,11 @@ git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && c
 
 `gcc -g check_logs.c -o check_logs -lcrypto -llzma -std=gnu99`
 
+#### How to work check_logs plugin :
+
+More information :
+https://github.com/liberodark/nrpe-installer/wiki/Plugin-check_logs
+
 #### For check_updates :
 
 Debian : `apt install libpackagekit-glib2-dev`
@@ -45,11 +50,6 @@ Centos : `yum install PackageKit-glib-devel`
 #### For check_swap :
 
 need nrpe-plugin source for compile.
-
-### How to work check_logs plugin :
-
-More information :
-https://github.com/liberodark/nrpe-installer/wiki/Plugin-check_logs
 
 
 ### SELinux :
