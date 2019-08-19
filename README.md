@@ -26,15 +26,15 @@ git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && c
 
 ### Compile plugins :
 
-- For check_cpu :
+#### For check_cpu :
 
 `gcc check_cpu.c -o check_cpu -std=gnu99`
 
-- For check_logs :
+#### For check_logs :
 
 `gcc -g check_logs.c -o check_logs -lcrypto -llzma -std=gnu99`
 
-- For check_updates :
+#### For check_updates :
 
 Debian : `apt install libpackagekit-glib2-dev`
 
@@ -42,7 +42,7 @@ Centos : `yum install PackageKit-glib-devel`
 
 `gcc -g check_updates.c -o check_updates $(pkg-config --cflags --libs glib-2.0 packagekit-glib2) -std=gnu99`
 
-- For check_swap :
+#### For check_swap :
 
 need nrpe-plugin source for compile.
 
