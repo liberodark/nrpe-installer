@@ -323,7 +323,7 @@ int main(int argc, char **argv)
 
 			if (must_upd_sec_pkg)
 				add_pkg = 1;
-			printf("%s\n", changelog);
+			printf("\n\n===== %s =====\n\n%s\n", pkg_id, changelog);
 		}
 
 		if (add_pkg)
