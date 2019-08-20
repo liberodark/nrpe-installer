@@ -316,7 +316,7 @@ int main(int argc, char **argv)
 			add_pkg = 1;
 
 		if (cve_urls && cve_urls[0]
-				|| (changelog && sscanf(changelog, "CVE-%lu-%lu", &dummy, &dummy) == 2)
+				|| (changelog && strstr(changelog, "CVE-"))
 				|| pkg_info & PK_INFO_ENUM_SECURITY)
 		{
 			sec_upd_count++;
