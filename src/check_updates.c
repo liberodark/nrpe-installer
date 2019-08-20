@@ -308,6 +308,7 @@ int main(int argc, char **argv)
 		PkPackage *pkg = (PkPackage *)g_ptr_array_index(pkgs, i);
 		PkInfoEnum pkg_info = pk_package_get_info(pkg);
 		int add_pkg = 0;
+		long int dummy;
 
 		g_assert_cmpstr(pkg_id, ==, pk_package_get_id(pkg));
 
@@ -315,8 +316,7 @@ int main(int argc, char **argv)
 			add_pkg = 1;
 
 		if (cve_urls && cve_urls[0]
-				|| changelog && (strcasestr(changelog, "security")
-					|| strcasestr(changelog, "cve"))
+				|| (changelog && sscanf(changelog, "CVE-%lu-%lu", &dummy, &dummy) == 2)
 				|| pkg_info & PK_INFO_ENUM_SECURITY)
 		{
 			sec_upd_count++;
