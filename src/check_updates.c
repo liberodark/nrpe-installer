@@ -1,3 +1,5 @@
+#define _GNU_SOURCE 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -300,9 +302,11 @@ int main(int argc, char **argv)
 	for (size_t i = 0; i < upds->len; i++)
 	{
 		PkUpdateDetail *upd = (PkUpdateDetail *)g_ptr_array_index(upds, i);
-		PkPackage *pkg = (PkPackage *)g_ptr_array_index(pkgs, i);
 		const gchar *pkg_id = pk_update_detail_get_package_id(upd);
 		gchar **cve_urls = pk_update_detail_get_cve_urls(upd);
+		const gchar *changelog = pk_update_detail_get_changelog(upd);
+		PkPackage *pkg = (PkPackage *)g_ptr_array_index(pkgs, i);
+		PkInfoEnum pkg_info = pk_package_get_info(pkg);
 		int add_pkg = 0;
 
 		g_assert_cmpstr(pkg_id, ==, pk_package_get_id(pkg));
@@ -310,7 +314,10 @@ int main(int argc, char **argv)
 		if (must_upd_pkg)
 			add_pkg = 1;
 
-		if (cve_urls && cve_urls[0])
+		if (cve_urls && cve_urls[0]
+				|| changelog && (strcasestr(changelog, "security")
+					|| strcasestr(changelog, "cve"))
+				|| pkg_info & PK_INFO_ENUM_SECURITY)
 		{
 			sec_upd_count++;
 
