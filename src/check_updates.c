@@ -1,5 +1,4 @@
-#define _GNU_SOURCE 1
-
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,9 +14,11 @@
 enum opt_id
 {
 	OPT_C = 0,
+	OPT_DETAILS,
 	OPT_SECURITY_UPDATE,
 	OPT_UPDATE,
 	OPT_W,
+	OPT_Y,
 	OPT_COUNT
 };
 
@@ -185,6 +186,152 @@ static gint upd_cmp_by_pkg_id(gconstpointer a, gconstpointer b)
 			pk_update_detail_get_package_id(*(PkUpdateDetail **)b));
 }
 
+static void pk_progress_cb(PkProgress *progress, PkProgressType type, gpointer user_data)
+{
+	switch(type)
+	{
+		case PK_PROGRESS_TYPE_PACKAGE_ID:
+		{
+			const gchar *pkg_id = pk_progress_get_package_id(progress);
+
+			printf("Package ID: %s\n", pkg_id);
+			break;
+		}
+
+		case PK_PROGRESS_TYPE_TRANSACTION_ID:
+		{
+			const gchar *trans_id = pk_progress_get_transaction_id(progress);
+
+			printf("Transaction ID: %s\n", trans_id);
+			break;
+		}
+
+		case PK_PROGRESS_TYPE_PERCENTAGE:
+		{
+			gint pct = pk_progress_get_percentage(progress);
+
+			if (pct < 0 || pct > 100)
+				printf("Progress: unknown\n");
+			else
+				printf("Progress: %d%%\n", pct);
+			break;
+		}
+
+		case PK_PROGRESS_TYPE_ALLOW_CANCEL:
+		{
+			gboolean allow_cancel = pk_progress_get_allow_cancel(progress);
+
+			printf("Allow cancel: %s\n", allow_cancel ? "true" : "false");
+			break;
+		}
+
+		case PK_PROGRESS_TYPE_STATUS:
+		{
+			PkStatusEnum status = pk_progress_get_status(progress);
+			const gchar *status_str = pk_status_enum_to_string(status);
+
+			printf("Status: %s\n", status_str);
+			break;
+		}
+
+		case PK_PROGRESS_TYPE_ROLE:
+		{
+			PkRoleEnum role = pk_progress_get_role(progress);
+			const gchar *role_str = pk_role_enum_to_string(role);
+
+			printf("Role: %s\n", role_str);
+			break;
+		}
+
+		case PK_PROGRESS_TYPE_CALLER_ACTIVE:
+		{
+			gboolean caller_active = pk_progress_get_caller_active(progress);
+
+			printf("Caller active: %s\n", caller_active ? "true" : "false");
+			break;
+		}
+
+		case PK_PROGRESS_TYPE_ELAPSED_TIME:
+		{
+			guint elapsed_time_sec = pk_progress_get_elapsed_time(progress);
+
+			printf("Elapsed time: %u sec\n", elapsed_time_sec);
+			break;
+		}
+
+		case PK_PROGRESS_TYPE_REMAINING_TIME:
+		{
+			guint remaining_time_sec = pk_progress_get_remaining_time(progress);
+
+			printf("Remaining time: %u sec\n", remaining_time_sec);
+			break;
+		}
+
+		case PK_PROGRESS_TYPE_SPEED:
+		{
+			guint speed_bps = pk_progress_get_speed(progress);
+
+			if (speed_bps == 0)
+				printf("Speed: unknown\n");
+			else
+				printf("Speed: %u kBps (%u kbps)\n", speed_bps / 8 / 1024, speed_bps / 1024);
+			break;
+		}
+
+		case PK_PROGRESS_TYPE_DOWNLOAD_SIZE_REMAINING:
+		{
+			guint64 download_size_remaining = pk_progress_get_download_size_remaining(progress);
+
+			printf("Download size remaining: %"PRIu64" kB\n", download_size_remaining / 1024);
+			break;
+		}
+
+		case PK_PROGRESS_TYPE_UID:
+		{
+			guint uid = pk_progress_get_uid(progress);
+
+			printf("User ID: %u\n", uid);
+			break;
+		}
+
+		case PK_PROGRESS_TYPE_PACKAGE:
+		{
+			PkPackage *pkg = pk_progress_get_package(progress);
+			const gchar *pkg_id = pk_package_get_id(pkg);
+			gchar *pkg_name = pk_package_id_to_printable(pkg_id);
+
+			printf("Current package: %s\n", pkg_name);
+			g_free(pkg_name);
+			break;
+		}
+
+		case PK_PROGRESS_TYPE_ITEM_PROGRESS:
+		{
+			PkItemProgress *item = pk_progress_get_item_progress(progress);
+			PkStatusEnum status = pk_item_progress_get_status(item);
+			const gchar *status_str = pk_status_enum_to_string(status);
+			guint pct = pk_item_progress_get_percentage(item);
+			const gchar *pkg_id = pk_item_progress_get_package_id(item);
+			gchar *pkg_name = pk_package_id_to_printable(pkg_id);
+
+			printf("[%s] %s: %u%%\n", status_str, pkg_name, pct);
+			break;
+		}
+
+		case PK_PROGRESS_TYPE_TRANSACTION_FLAGS:
+		{
+			PkBitfield trans_flags = pk_progress_get_transaction_flags(progress);
+			const gchar *trans_flags_str = pk_transaction_flag_enum_to_string(trans_flags);
+
+			printf("Transaction flags: %s\n", trans_flags_str);
+			break;
+		}
+
+		case PK_PROGRESS_TYPE_INVALID:
+			break;
+	}
+}
+
 int main(int argc, char **argv)
 {
 #define OPT_NONE(e, n) [e] = { .type = OPT_TYPE_NONE, .name = n }
@@ -193,9 +340,11 @@ int main(int argc, char **argv)
 #define OPT_END() [OPT_COUNT] = { .type = OPT_TYPE_INVAL, .name = NULL }
 	struct opt opt_tpl[] = {
 		OPT_INT(OPT_C, "-c"),
+		OPT_NONE(OPT_DETAILS, "-details"),
 		OPT_NONE(OPT_SECURITY_UPDATE, "-security-update"),
 		OPT_NONE(OPT_UPDATE, "-update"),
 		OPT_INT(OPT_W, "-w"),
+		OPT_NONE(OPT_Y, "-y"),
 		OPT_END()
 	};
 #undef OPT_END
@@ -226,8 +375,10 @@ int main(int argc, char **argv)
 
 	if (get_opt_defined(opts, OPT_W))
 		warn_treshold = get_opt_int(opts, OPT_W);
+
 	if (get_opt_defined(opts, OPT_C))
 		crit_treshold = get_opt_int(opts, OPT_C);
+
 	must_upd_pkg = get_opt_defined(opts, OPT_UPDATE);
 	must_upd_sec_pkg = get_opt_defined(opts, OPT_SECURITY_UPDATE);
 
@@ -238,7 +389,7 @@ int main(int argc, char **argv)
 		goto fail_new_cli;
 	}
 
-	pk_results = pk_client_get_updates(cli, PK_FILTER_ENUM_NONE, NULL, NULL, NULL, &gerror);
+	pk_results = pk_client_get_updates(cli, PK_FILTER_ENUM_NONE, NULL, pk_progress_cb, NULL, &gerror);
 	if (!pk_results)
 	{
 		reason = "Failed to get the update list";
@@ -276,12 +427,11 @@ int main(int argc, char **argv)
 
 	g_ptr_array_add(pkg_ids, NULL);
 
-	pk_results = pk_client_get_update_detail(cli, (gchar **)pkg_ids->pdata, NULL, NULL, NULL, &gerror);
+	pk_results = pk_client_get_update_detail(cli, (gchar **)pkg_ids->pdata, NULL, pk_progress_cb, NULL, &gerror);
 	g_ptr_array_unref(pkg_ids);
-//	g_ptr_array_unref(pkgs);
 	if (!pk_results)
 	{
-		reason = "Failed to get packages update detail";
+		reason = "Failed to get update detail";
 		goto fail;
 	}
 
@@ -323,18 +473,23 @@ int main(int argc, char **argv)
 
 			if (must_upd_sec_pkg)
 				add_pkg = 1;
-			printf("\n\n===== %s =====\n\n%s\n", pkg_id, changelog);
+
+			gchar *pkg_name = pk_package_id_to_printable(pkg_id);
+			printf("%s\n", pkg_name);
+			g_free(pkg_name);
 		}
 
 		if (add_pkg)
 			g_ptr_array_add(pkg_ids, (gchar *)pkg_id);
 	}
 
+	g_object_unref(pkgs);
+
 	if (must_upd_pkg || must_upd_sec_pkg)
 	{
 		g_ptr_array_add(pkg_ids, NULL);
 
-		pk_results = pk_client_update_packages(cli, 0, (gchar **)pkg_ids->pdata, NULL, NULL, NULL, &gerror);
+		pk_results = pk_client_update_packages(cli, PK_TRANSACTION_FLAG_ENUM_NONE, (gchar **)pkg_ids->pdata, NULL, pk_progress_cb, NULL, &gerror);
 		g_ptr_array_unref(pkg_ids);
 		g_ptr_array_unref(upds);
 		if (!pk_results)
