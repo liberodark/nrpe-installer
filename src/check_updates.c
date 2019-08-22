@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <signal.h>
+
+#include <gio/gio.h>
 #include <glib.h>
 #include <gmodule.h>
 
@@ -11,10 +14,11 @@
 #include <packagekit-glib2/packagekit.h>
 
 
+/***** Options handling *****/
+
 enum opt_id
 {
 	OPT_C = 0,
-	OPT_DETAILS,
 	OPT_SECURITY_UPDATE,
 	OPT_UPDATE,
 	OPT_W,
@@ -168,10 +172,24 @@ const char *get_opt_str(struct opt *opts, enum opt_id id)
 	return opts[id].data.as_str;
 }
 
-int print_usage(int argc, char **argv)
+
+/***** Frontend *****/
+
+#define LOG(...) fprintf(stderr, __VA_ARGS__)
+
+static inline int clampi(int n, int a, int b) {
+	return n < a ? a : n > b ? b : n;
+}
+
+static void handle_sig(int num, void (*handler)(int))
 {
-	fprintf(stderr, "Usage: %s [-w <warn_treshold>] [-c <crit_treshold>] [-security-update] [-update]\n", (argc >= 1) ? argv[0] : "check_pkg");
-	return 1;
+	struct sigaction act;
+
+	act.sa_handler = handler;
+	sigfillset(&act.sa_mask);
+	act.sa_flags = 0;
+
+	sigaction(num, &act, NULL);
 }
 
 static gint pkg_cmp_by_id(gconstpointer a, gconstpointer b)
@@ -186,15 +204,23 @@ static gint upd_cmp_by_pkg_id(gconstpointer a, gconstpointer b)
 			pk_update_detail_get_package_id(*(PkUpdateDetail **)b));
 }
 
-static void pk_progress_cb(PkProgress *progress, PkProgressType type, gpointer user_data)
+struct pkg_context
 {
+	gboolean is_cancellable;
+	GCancellable *cancellable;
+};
+
+static void progress_cb(PkProgress *progress, PkProgressType type, gpointer user_data)
+{
+	struct pkg_context *ctx = (struct pkg_context *)user_data;
+
 	switch(type)
 	{
 		case PK_PROGRESS_TYPE_PACKAGE_ID:
 		{
 			const gchar *pkg_id = pk_progress_get_package_id(progress);
 
-			printf("Package ID: %s\n", pkg_id);
+			LOG("Package ID: %s\n", pkg_id);
 			break;
 		}
 
@@ -202,7 +228,7 @@ static void pk_progress_cb(PkProgress *progress, PkProgressType type, gpointer u
 		{
 			const gchar *trans_id = pk_progress_get_transaction_id(progress);
 
-			printf("Transaction ID: %s\n", trans_id);
+			LOG("Transaction ID: %s\n", trans_id);
 			break;
 		}
 
@@ -210,10 +236,8 @@ static void pk_progress_cb(PkProgress *progress, PkProgressType type, gpointer u
 		{
 			gint pct = pk_progress_get_percentage(progress);
 
-			if (pct < 0 || pct > 100)
-				printf("Progress: unknown\n");
-			else
-				printf("Progress: %d%%\n", pct);
+			pct = clampi(pct, 0, 100);
+			LOG("Progress: %d%%\n", pct);
 			break;
 		}
 
@@ -221,7 +245,9 @@ static void pk_progress_cb(PkProgress *progress, PkProgressType type, gpointer u
 		{
 			gboolean allow_cancel = pk_progress_get_allow_cancel(progress);
 
-			printf("Allow cancel: %s\n", allow_cancel ? "true" : "false");
+			ctx->is_cancellable = allow_cancel;
+
+			LOG("Allow cancel: %s\n", allow_cancel ? "true" : "false");
 			break;
 		}
 
@@ -230,7 +256,7 @@ static void pk_progress_cb(PkProgress *progress, PkProgressType type, gpointer u
 			PkStatusEnum status = pk_progress_get_status(progress);
 			const gchar *status_str = pk_status_enum_to_string(status);
 
-			printf("Status: %s\n", status_str);
+			LOG("Status: %s\n", status_str);
 			break;
 		}
 
@@ -239,7 +265,7 @@ static void pk_progress_cb(PkProgress *progress, PkProgressType type, gpointer u
 			PkRoleEnum role = pk_progress_get_role(progress);
 			const gchar *role_str = pk_role_enum_to_string(role);
 
-			printf("Role: %s\n", role_str);
+			LOG("Role: %s\n", role_str);
 			break;
 		}
 
@@ -247,7 +273,7 @@ static void pk_progress_cb(PkProgress *progress, PkProgressType type, gpointer u
 		{
 			gboolean caller_active = pk_progress_get_caller_active(progress);
 
-			printf("Caller active: %s\n", caller_active ? "true" : "false");
+			LOG("Caller active: %s\n", caller_active ? "true" : "false");
 			break;
 		}
 
@@ -255,7 +281,7 @@ static void pk_progress_cb(PkProgress *progress, PkProgressType type, gpointer u
 		{
 			guint elapsed_time_sec = pk_progress_get_elapsed_time(progress);
 
-			printf("Elapsed time: %u sec\n", elapsed_time_sec);
+			LOG("Elapsed time: %u sec\n", elapsed_time_sec);
 			break;
 		}
 
@@ -263,7 +289,7 @@ static void pk_progress_cb(PkProgress *progress, PkProgressType type, gpointer u
 		{
 			guint remaining_time_sec = pk_progress_get_remaining_time(progress);
 
-			printf("Remaining time: %u sec\n", remaining_time_sec);
+			LOG("Remaining time: %u sec\n", remaining_time_sec);
 			break;
 		}
 
@@ -272,9 +298,9 @@ static void pk_progress_cb(PkProgress *progress, PkProgressType type, gpointer u
 			guint speed_bps = pk_progress_get_speed(progress);
 
 			if (speed_bps == 0)
-				printf("Speed: unknown\n");
+				LOG("Speed: unknown\n");
 			else
-				printf("Speed: %u kBps (%u kbps)\n", speed_bps / 8 / 1024, speed_bps / 1024);
+				LOG("Speed: %u kiBps (%u kbps)\n", speed_bps / 8 / 1024, speed_bps / 1024);
 			break;
 		}
 
@@ -282,7 +308,7 @@ static void pk_progress_cb(PkProgress *progress, PkProgressType type, gpointer u
 		{
 			guint64 download_size_remaining = pk_progress_get_download_size_remaining(progress);
 
-			printf("Download size remaining: %"PRIu64" kB\n", download_size_remaining / 1024);
+			LOG("Download size remaining: %"PRIu64" kiB\n", download_size_remaining / 1024);
 			break;
 		}
 
@@ -290,7 +316,7 @@ static void pk_progress_cb(PkProgress *progress, PkProgressType type, gpointer u
 		{
 			guint uid = pk_progress_get_uid(progress);
 
-			printf("User ID: %u\n", uid);
+			LOG("User ID: %u\n", uid);
 			break;
 		}
 
@@ -300,7 +326,7 @@ static void pk_progress_cb(PkProgress *progress, PkProgressType type, gpointer u
 			const gchar *pkg_id = pk_package_get_id(pkg);
 			gchar *pkg_name = pk_package_id_to_printable(pkg_id);
 
-			printf("Current package: %s\n", pkg_name);
+			LOG("Package: %s\n", pkg_name);
 			g_free(pkg_name);
 			break;
 		}
@@ -314,22 +340,47 @@ static void pk_progress_cb(PkProgress *progress, PkProgressType type, gpointer u
 			const gchar *pkg_id = pk_item_progress_get_package_id(item);
 			gchar *pkg_name = pk_package_id_to_printable(pkg_id);
 
-			printf("[%s] %s: %u%%\n", status_str, pkg_name, pct);
+			pct = clampi(pct, 0, 100);
+			LOG("[%s(%u): %u%%] %s\n", status_str, status, pct, pkg_name);
+			g_free(pkg_name);
 			break;
 		}
 
 		case PK_PROGRESS_TYPE_TRANSACTION_FLAGS:
 		{
 			PkBitfield trans_flags = pk_progress_get_transaction_flags(progress);
-			const gchar *trans_flags_str = pk_transaction_flag_enum_to_string(trans_flags);
+			gchar *trans_flags_str = pk_transaction_flag_bitfield_to_string(trans_flags);
 
-			printf("Transaction flags: %s\n", trans_flags_str);
+			LOG("Transaction flags: %s\n", trans_flags_str);
+			g_free(trans_flags_str);
 			break;
 		}
 
 		case PK_PROGRESS_TYPE_INVALID:
 			break;
 	}
+}
+
+static struct pkg_context ctx;
+
+static void sig_handler(int num)
+{
+	if (!ctx.is_cancellable)
+	{
+		LOG("Received signal %d, but the current step is not cancellable.\n", num);
+		return;
+	}
+
+	LOG("Received signal %d, terminating...\n", num);
+
+	g_cancellable_cancel(ctx.cancellable);
+	exit(1);
+}
+
+int print_usage(int argc, char **argv)
+{
+	LOG("Usage: %s [-w <warn_treshold>] [-c <crit_treshold>] [-security-update] [-update] [-y]\n", (argc >= 1) ? argv[0] : "check_pkg");
+	return 1;
 }
 
 int main(int argc, char **argv)
@@ -340,7 +391,6 @@ int main(int argc, char **argv)
 #define OPT_END() [OPT_COUNT] = { .type = OPT_TYPE_INVAL, .name = NULL }
 	struct opt opt_tpl[] = {
 		OPT_INT(OPT_C, "-c"),
-		OPT_NONE(OPT_DETAILS, "-details"),
 		OPT_NONE(OPT_SECURITY_UPDATE, "-security-update"),
 		OPT_NONE(OPT_UPDATE, "-update"),
 		OPT_INT(OPT_W, "-w"),
@@ -359,6 +409,7 @@ int main(int argc, char **argv)
 	int crit_treshold = INT_MAX;
 	int must_upd_pkg = 0;
 	int must_upd_sec_pkg = 0;
+	int ask_confirm = 0;
 	PkClient *cli;
 	GError *gerror = NULL;
 	PkResults *pk_results;
@@ -381,6 +432,15 @@ int main(int argc, char **argv)
 
 	must_upd_pkg = get_opt_defined(opts, OPT_UPDATE);
 	must_upd_sec_pkg = get_opt_defined(opts, OPT_SECURITY_UPDATE);
+	ask_confirm = !get_opt_defined(opts, OPT_Y);
+
+	ctx.is_cancellable = TRUE;
+	ctx.cancellable = g_cancellable_new();
+
+	handle_sig(SIGHUP, sig_handler);
+	handle_sig(SIGINT, sig_handler);
+	handle_sig(SIGQUIT, sig_handler);
+	handle_sig(SIGTERM, sig_handler);
 
 	cli = pk_client_new();
 	if (!cli)
@@ -389,7 +449,9 @@ int main(int argc, char **argv)
 		goto fail_new_cli;
 	}
 
-	pk_results = pk_client_get_updates(cli, PK_FILTER_ENUM_NONE, NULL, pk_progress_cb, NULL, &gerror);
+	pk_results = pk_client_get_updates(cli,
+			pk_bitfield_from_enums(PK_FILTER_ENUM_NONE, -1),
+			ctx.cancellable, progress_cb, &ctx, &gerror);
 	if (!pk_results)
 	{
 		reason = "Failed to get the update list";
@@ -408,6 +470,7 @@ int main(int argc, char **argv)
 	{
 		/* Short path */
 		g_ptr_array_unref(pkgs);
+		LOG("Everything is up to date.\n");
 		goto done;
 	}
 
@@ -427,13 +490,16 @@ int main(int argc, char **argv)
 
 	g_ptr_array_add(pkg_ids, NULL);
 
-	pk_results = pk_client_get_update_detail(cli, (gchar **)pkg_ids->pdata, NULL, pk_progress_cb, NULL, &gerror);
+	pk_results = pk_client_get_update_detail(cli, (gchar **)pkg_ids->pdata, ctx.cancellable, progress_cb, &ctx, &gerror);
+	ctx.is_cancellable = TRUE;
 	g_ptr_array_unref(pkg_ids);
 	if (!pk_results)
 	{
 		reason = "Failed to get update detail";
 		goto fail;
 	}
+
+	g_cancellable_reset(ctx.cancellable);
 
 	upds = pk_results_get_update_detail_array(pk_results);
 	g_object_unref(pk_results);
@@ -447,7 +513,13 @@ int main(int argc, char **argv)
 
 	g_ptr_array_sort(upds, upd_cmp_by_pkg_id);
 
-	pkg_ids = g_ptr_array_sized_new(total_upd_count + 1);
+	if (must_upd_pkg || must_upd_sec_pkg)
+	{
+		pkg_ids = g_ptr_array_sized_new(total_upd_count + 1);
+		LOG("The following packages will be updated:\n");
+	}
+	else
+		LOG("The following packages are security updates:\n");
 
 	for (size_t i = 0; i < upds->len; i++)
 	{
@@ -458,6 +530,7 @@ int main(int argc, char **argv)
 		PkPackage *pkg = (PkPackage *)g_ptr_array_index(pkgs, i);
 		PkInfoEnum pkg_info = pk_package_get_info(pkg);
 		int add_pkg = 0;
+		int is_sec = 0;
 		long int dummy;
 
 		g_assert_cmpstr(pkg_id, ==, pk_package_get_id(pkg));
@@ -468,35 +541,75 @@ int main(int argc, char **argv)
 		if (cve_urls && cve_urls[0]
 				|| (changelog && strstr(changelog, "CVE-"))
 				|| pkg_info & PK_INFO_ENUM_SECURITY)
+			is_sec = 1;
+
+		if (is_sec)
 		{
 			sec_upd_count++;
 
 			if (must_upd_sec_pkg)
 				add_pkg = 1;
 
-			gchar *pkg_name = pk_package_id_to_printable(pkg_id);
-			printf("%s\n", pkg_name);
-			g_free(pkg_name);
 		}
 
-		if (add_pkg)
-			g_ptr_array_add(pkg_ids, (gchar *)pkg_id);
+		if (is_sec || add_pkg)
+		{
+			gchar *pkg_name;
+
+			pkg_name = pk_package_id_to_printable(pkg_id);
+			LOG("%s%s\n", pkg_name, is_sec ? " (SECURITY)" : "");
+			g_free(pkg_name);
+
+			if (add_pkg)
+				g_ptr_array_add(pkg_ids, (gchar *)pkg_id);
+		}
 	}
 
-	g_object_unref(pkgs);
+	g_ptr_array_unref(pkgs);
 
 	if (must_upd_pkg || must_upd_sec_pkg)
 	{
-		g_ptr_array_add(pkg_ids, NULL);
+		int got_confirm = 1;
 
-		pk_results = pk_client_update_packages(cli, PK_TRANSACTION_FLAG_ENUM_NONE, (gchar **)pkg_ids->pdata, NULL, pk_progress_cb, NULL, &gerror);
+		if (ask_confirm)
+		{
+			char c = 0;
+
+			while (c != 'y' && c != 'n')
+			{
+				printf("\nProceed with installation? [y/n] ");
+				scanf("%c", &c);
+			}
+
+			got_confirm = c == 'y';
+		}
+
+		if (got_confirm)
+		{
+			g_ptr_array_add(pkg_ids, NULL);
+
+			pk_results = pk_client_update_packages(cli,
+					pk_bitfield_from_enums(PK_TRANSACTION_FLAG_ENUM_NONE, -1),
+					(gchar **)pkg_ids->pdata, ctx.cancellable, progress_cb, &ctx, &gerror);
+		}
+
+		ctx.is_cancellable = TRUE;
 		g_ptr_array_unref(pkg_ids);
 		g_ptr_array_unref(upds);
+
+		if (!got_confirm)
+		{
+			reason = "Cancelled by user";
+			goto fail;
+		}
+
 		if (!pk_results)
 		{
 			reason = "Failed to update packages";
 			goto fail;
 		}
+
+		g_cancellable_reset(ctx.cancellable);
 	}
 
 
@@ -521,6 +634,7 @@ done:
 
 fail:
 	g_object_unref(cli);
+	g_object_unref(ctx.cancellable);
 
 fail_new_cli:
 	if (result < 0)
