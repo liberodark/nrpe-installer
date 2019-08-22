@@ -49,6 +49,7 @@ plugins_conf='
 command[service]=/usr/local/nagios/libexec/check_service.sh -o linux -t "systemctl list-units --state=failed"
 command[memory]=/usr/local/nagios/libexec/check_mem -w $ARG1$ -c $ARG2$
 command[cpu]=/usr/local/nagios/libexec/check_cpu -w $ARG1$ -c $ARG2$
+command[update]=sudo /usr/local/nagios/libexec/check_updates -w $ARG1$ -c $ARG2$
 command[users]=/usr/local/nagios/libexec/check_users -w $ARG1$ -c $ARG2$
 command[load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$
 command[check_load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$
