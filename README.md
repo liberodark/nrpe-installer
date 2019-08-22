@@ -47,6 +47,9 @@ Centos : `yum install PackageKit-glib-devel`
 
 `gcc -g check_updates.c -o check_updates $(pkg-config --cflags --libs glib-2.0 packagekit-glib2 gio-2.0) -std=gnu99`
 
+More information :
+https://github.com/liberodark/nrpe-installer/wiki/Plugin-check_updates
+
 #### For check_swap :
 
 need nrpe-plugin source for compile.
