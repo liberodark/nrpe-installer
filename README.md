@@ -45,7 +45,7 @@ Debian : `apt install libpackagekit-glib2-dev`
 
 Centos : `yum install PackageKit-glib-devel`
 
-`gcc -g check_updates.c -o check_updates $(pkg-config --cflags --libs glib-2.0 packagekit-glib2) -std=gnu99`
+`gcc -g check_updates.c -o check_updates $(pkg-config --cflags --libs glib-2.0 packagekit-glib2 gio-2.0) -std=gnu99`
 
 #### For check_swap :
 
