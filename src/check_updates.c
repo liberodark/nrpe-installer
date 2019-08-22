@@ -451,7 +451,7 @@ int main(int argc, char **argv)
 
 	pk_client_set_interactive(cli, TRUE);
 
-	pk_results = pk_client_refresh_cache(cli, TRUE, ctx.cancellable, progress_cb, &ctx, &gerror);
+	pk_results = pk_client_refresh_cache(cli, FALSE, ctx.cancellable, progress_cb, &ctx, &gerror);
 	if (!pk_results)
 	{
 		reason = "Failed to refresh the update list";
