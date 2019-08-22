@@ -419,6 +419,7 @@ int main(int argc, char **argv)
 	size_t total_upd_count = 0;
 	size_t sec_upd_count = 0;
 	const char *panic_str;
+	gchar *nagios_is_a_useless_pile_of_shit = g_strdup("Security updates:\n");
 
 	opts = parse_opts(argc, argv, opt_tpl);
 	if (!opts)
@@ -568,10 +569,17 @@ int main(int argc, char **argv)
 		if (is_sec || add_pkg)
 		{
 			gchar *pkg_name;
+			gchar *s1, *s2;
 
 			pkg_name = pk_package_id_to_printable(pkg_id);
-			LOG("%s%s\n", pkg_name, is_sec ? " (SECURITY)" : "");
+			s1 = g_strdup_printf("%s%s\n", pkg_name, is_sec ? " (SECURITY)" : "");
 			g_free(pkg_name);
+
+			LOG("%s", s1);
+
+			s2 = g_strconcat(nagios_is_a_useless_pile_of_shit, s1, NULL);
+			g_free(s1);
+			nagios_is_a_useless_pile_of_shit = s2;
 
 			if (add_pkg)
 				g_ptr_array_add(pkg_ids, (gchar *)pkg_id);
@@ -640,7 +648,8 @@ done:
 		status = 1;
 	}
 
-	printf("UPDATE %s - Security-Update = %zu | 'Total Update' = %zu\n", panic_str, sec_upd_count, total_upd_count);
+	printf("UPDATE %s - Security-Update = %zu | 'Total Update' = %zu\n%s", panic_str, sec_upd_count, total_upd_count, nagios_is_a_useless_pile_of_shit);
+	g_free(nagios_is_a_useless_pile_of_shit);
 
 	result = 0;
 
