@@ -518,7 +518,7 @@ int main(int argc, char **argv)
 	g_object_unref(pk_results);
 	if (!upds)
 	{
-		reason = "Failed to get packages update detail";
+		reason = "Failed to extract update detail";
 		goto fail;
 	}
 
@@ -643,7 +643,6 @@ done:
 	printf("UPDATE %s - Security-Update = %zu | 'Total Update' = %zu\n", panic_str, sec_upd_count, total_upd_count);
 
 	result = 0;
-	status = 0;
 
 fail:
 	g_object_unref(cli);
