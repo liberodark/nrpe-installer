@@ -449,6 +449,17 @@ int main(int argc, char **argv)
 		goto fail_new_cli;
 	}
 
+	pk_client_set_interactive(cli, TRUE);
+
+	pk_results = pk_client_refresh_cache(cli, TRUE, ctx.cancellable, progress_cb, &ctx, &gerror);
+	if (!pk_results)
+	{
+		reason = "Failed to refresh the update list";
+		goto fail;
+	}
+
+	g_cancellable_reset(ctx.cancellable);
+
 	pk_results = pk_client_get_updates(cli,
 			pk_bitfield_from_enums(PK_FILTER_ENUM_NONE, -1),
 			ctx.cancellable, progress_cb, &ctx, &gerror);
@@ -457,6 +468,8 @@ int main(int argc, char **argv)
 		reason = "Failed to get the update list";
 		goto fail;
 	}
+
+	g_cancellable_reset(ctx.cancellable);
 
 	pkgs = pk_results_get_package_array(pk_results);
 	g_object_unref(pk_results);
