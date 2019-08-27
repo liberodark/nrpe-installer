@@ -208,7 +208,7 @@ echo "Open Port NRPE Server"
 
   if [ $? != 1 ]; then
     
-    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red || "$distribution" = RedHat || "$distribution" = Fedora || "$distribution" = Fedora || "$distribution" = Suse || "$distribution" = Oracle || "$distribution" = Clear ]]; then
+    f [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red\ Hat || "$distribution" = Fedora || "$distribution" = Suse || "$distribution" = Oracle ]]; then
       #firewall-cmd --permanent --zone=public --add-port=$port/tcp 
       #firewall-cmd --reload
       iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
@@ -216,7 +216,7 @@ echo "Open Port NRPE Server"
       #sudo chkconfig iptables on
       #sudo service iptables save
     
-    elif [[ "$distribution" = Debian || "$distribution" = Debian || "$distribution" = Ubuntu || "$distribution" = Ubuntu ]]; then
+    elif [[ "$distribution" = Debian || "$distribution" = Ubuntu || "$distribution" = Deepin ]]; then
       #apt-get install ufw -y
       #ufw default deny
       #ufw default allow outgoing
