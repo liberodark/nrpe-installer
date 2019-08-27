@@ -211,7 +211,7 @@ echo "Open Port NRPE Server"
     if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red || "$distribution" = RedHat || "$distribution" = Fedora || "$distribution" = Fedora || "$distribution" = Suse || "$distribution" = Oracle || "$distribution" = Clear ]]; then
       #firewall-cmd --permanent --zone=public --add-port=$port/tcp 
       #firewall-cmd --reload
-      #iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
+      iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
       #sudo iptables-save > /etc/sysconfig/iptables
       #sudo chkconfig iptables on
       #sudo service iptables save
@@ -223,7 +223,7 @@ echo "Open Port NRPE Server"
       #ufw allow 22/tcp && ufw allow 443/tcp && ufw allow $port/tcp
       #ufw enable
       #apt-get install iptables-persistent -y
-      #iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
+      iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
       #iptables-save > /etc/iptables/rules.v4
       
     fi
