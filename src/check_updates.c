@@ -523,8 +523,6 @@ int main(int argc, char **argv)
 		goto fail;
 	}
 
-	g_assert_true(upds->len == pkgs->len);
-
 	g_ptr_array_sort(upds, upd_cmp_by_pkg_id);
 
 	if (must_upd_pkg || must_upd_sec_pkg)
@@ -535,26 +533,66 @@ int main(int argc, char **argv)
 	else
 		LOG("The following packages are security updates:\n");
 
-	for (size_t i = 0; i < upds->len; i++)
+	for (size_t i = 0, i_upd = 0; i < pkgs->len; i++)
 	{
-		PkUpdateDetail *upd = (PkUpdateDetail *)g_ptr_array_index(upds, i);
-		const gchar *pkg_id = pk_update_detail_get_package_id(upd);
-		gchar **cve_urls = pk_update_detail_get_cve_urls(upd);
-		const gchar *changelog = pk_update_detail_get_changelog(upd);
 		PkPackage *pkg = (PkPackage *)g_ptr_array_index(pkgs, i);
+		const gchar *pkg_id = pk_package_get_id(pkg);
 		PkInfoEnum pkg_info = pk_package_get_info(pkg);
+		PkUpdateDetail *upd;
+		const gchar *upd_pkg_id;
+		gchar **cve_urls;
+		const gchar *changelog;
+		int have_upd_detail = 0;
 		int add_pkg = 0;
 		int is_sec = 0;
 		long int dummy;
 
-		g_assert_cmpstr(pkg_id, ==, pk_package_get_id(pkg));
+		while (i_upd < upds->len)
+		{
+			upd = (PkUpdateDetail *)g_ptr_array_index(upds, i_upd);
+			upd_pkg_id = pk_update_detail_get_package_id(upd);
+			cve_urls = pk_update_detail_get_cve_urls(upd);
+			changelog = pk_update_detail_get_changelog(upd);
+			int d;
+
+			i_upd++;
+			d = strcmp(pkg_id, upd_pkg_id);
+			if (d == 0)
+			{
+				have_upd_detail = 1;
+				break;
+			}
+			else if (d < 0)
+			{
+				i_upd--;
+				break;
+			}
+			else if (d > 0)
+			{
+				gchar *pkg_name;
+
+				pkg_name = pk_package_id_to_printable(upd_pkg_id);
+				LOG("WARN: Unexpectedly got update detail for non-requested package %s\n", pkg_name);
+				g_free(pkg_name);
+			}
+		}
+
+		if (!have_upd_detail)
+		{
+			gchar *pkg_name;
+
+			pkg_name = pk_package_id_to_printable(pkg_id);
+			LOG("WARN: Missing update detail for package %s\n", pkg_name);
+			g_free(pkg_name);
+		}
 
 		if (must_upd_pkg)
 			add_pkg = 1;
 
-		if (cve_urls && cve_urls[0]
-				|| (changelog && strstr(changelog, "CVE-"))
-				|| pkg_info & PK_INFO_ENUM_SECURITY)
+		if (have_upd_detail
+				&& ((cve_urls && cve_urls[0])
+					|| (changelog && strstr(changelog, "CVE-"))
+					|| (pkg_info & PK_INFO_ENUM_SECURITY)))
 			is_sec = 1;
 
 		if (is_sec)
@@ -563,7 +601,6 @@ int main(int argc, char **argv)
 
 			if (must_upd_sec_pkg)
 				add_pkg = 1;
-
 		}
 
 		if (is_sec || add_pkg)
@@ -572,13 +609,14 @@ int main(int argc, char **argv)
 			gchar *s1, *s2;
 
 			pkg_name = pk_package_id_to_printable(pkg_id);
-			s1 = g_strdup_printf("%s%s\n", pkg_name, is_sec ? " (SECURITY)" : "");
+			s1 = g_strdup_printf("%s%s\n", pkg_name, is_sec ? " (SECURITY)" : (have_upd_detail ? "" : " (\?\?\?)"));
 			g_free(pkg_name);
 
 			LOG("%s", s1);
 
 			s2 = g_strconcat(nagios_is_a_useless_pile_of_shit, s1, NULL);
 			g_free(s1);
+			g_free(nagios_is_a_useless_pile_of_shit);
 			nagios_is_a_useless_pile_of_shit = s2;
 
 			if (add_pkg)
@@ -586,11 +624,35 @@ int main(int argc, char **argv)
 		}
 	}
 
-	g_ptr_array_unref(pkgs);
+	g_ptr_array_unref(upds);
+
+	if ((must_upd_pkg && total_upd_count == 0)
+			|| (must_upd_sec_pkg && sec_upd_count == 0)
+			|| (!must_upd_pkg && !must_upd_sec_pkg && sec_upd_count == 0))
+	{
+		gchar *s1, *s2;
+
+		s1 = "(none)\n";
+
+		LOG("%s", s1);
+
+		s2 = g_strconcat(nagios_is_a_useless_pile_of_shit, s1, NULL);
+		g_free(nagios_is_a_useless_pile_of_shit);
+		nagios_is_a_useless_pile_of_shit = s2;
+	}
 
 	if (must_upd_pkg || must_upd_sec_pkg)
 	{
 		int got_confirm = 1;
+
+		if (pkg_ids->len == 0)
+		{
+			/* Short path */
+			g_ptr_array_unref(pkg_ids);
+			g_ptr_array_unref(pkgs);
+			LOG("Everything is up to date.\n");
+			goto done;
+		}
 
 		if (ask_confirm)
 		{
@@ -616,7 +678,7 @@ int main(int argc, char **argv)
 
 		ctx.is_cancellable = TRUE;
 		g_ptr_array_unref(pkg_ids);
-		g_ptr_array_unref(upds);
+		g_ptr_array_unref(pkgs);
 
 		if (!got_confirm)
 		{
