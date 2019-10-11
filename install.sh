@@ -5,7 +5,7 @@
 # Thanks : frju365, Booti386, erdnaxeli
 # License: GNU GPLv3
 
-version="0.9.1"
+version="0.9.2"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -113,9 +113,14 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
 
   if ! command -v nrpe &> /dev/null; then
 
-    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red\ Hat || "$distribution" = Fedora || "$distribution" = Suse || "$distribution" = Oracle ]]; then
+    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red\ Hat || "$distribution" = Suse || "$distribution" = Oracle ]]; then
       yum install -y make gcc glibc glibc-common openssl openssl-devel PackageKit &> /dev/null
 
+      compile_nrpe_ssl || exit
+      
+    elif [[ "$distribution" = Fedora ]]; then
+      dnf install -y make gcc glibc glibc-common openssl openssl-devel PackageKit &> /dev/null
+    
       compile_nrpe_ssl || exit
     
     elif [[ "$distribution" = Debian || "$distribution" = Ubuntu || "$distribution" = Deepin ]]; then
@@ -145,9 +150,14 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
 
   if ! command -v nrpe &> /dev/null; then
 
-    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red\ Hat || "$distribution" = Fedora || "$distribution" = Suse || "$distribution" = Oracle ]]; then
+    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red\ Hat || "$distribution" = Suse || "$distribution" = Oracle ]]; then
       yum install -y make gcc glibc glibc-common PackageKit &> /dev/null
 
+      compile_nrpe_nossl || exit
+      
+    elif [[ "$distribution" = Fedora ]]; then
+      dnf install -y make gcc glibc glibc-common openssl openssl-devel PackageKit &> /dev/null
+    
       compile_nrpe_nossl || exit
     
     elif [[ "$distribution" = Debian || "$distribution" = Ubuntu || "$distribution" = Deepin ]]; then
