@@ -1,7 +1,9 @@
+#include <ctype.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <fcntl.h>
 #include <signal.h>
@@ -17,12 +19,15 @@
 
 #define DEFAULT_FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
+
 
 /***** Options handling *****/
 
 enum opt_id
 {
 	OPT_C = 0,
+	OPT_CRON,
 	OPT_LOCK,
 	OPT_SECURITY_UPDATE,
 	OPT_UPDATE,
@@ -36,7 +41,16 @@ enum opt_type
 	OPT_TYPE_INVAL = 0,
 	OPT_TYPE_NONE,
 	OPT_TYPE_INT,
-	OPT_TYPE_STR
+	OPT_TYPE_STR,
+	OPT_TYPE_CRON
+};
+
+struct opt_data_cron
+{
+	int M;
+	int H;
+	int d;
+	int m;
 };
 
 struct opt
@@ -47,8 +61,16 @@ struct opt
 	union {
 		int as_int;
 		const char *as_str;
+		struct opt_data_cron as_cron;
 	} data;
 };
+
+static inline const char *skip_spaces(const char *p) {
+	while (isspace(*p))
+		p++;
+
+	return p;
+}
 
 static int parse_opts_helper(int argc, char **argv, struct opt *opts)
 {
@@ -122,6 +144,84 @@ static int parse_opts_helper(int argc, char **argv, struct opt *opts)
 				opt->data.as_int = n;
 				break;
 			}
+
+			case OPT_TYPE_CRON:
+			{
+				const char *hardcoded[] = {
+					"@hourly",   "0 * * *",
+					"@daily",    "0 0 * *",
+					"@midnight", "0 0 * *",
+					"@monthly",  "0 0 1 *",
+					"@annually", "0 0 1 1"
+					"@yearly",   "0 0 1 1"
+				};
+				const char *origp, *p;
+				char *endp;
+				int params[4];
+				long int n;
+
+				origp = opt->data.as_str;
+
+				for (size_t j = 0; j < ARRAY_SIZE(hardcoded); j += 2)
+				{
+					if (strcmp(origp, hardcoded[j]) == 0)
+					{
+						origp = hardcoded[j + 1];
+						break;
+					}
+				}
+
+				p = origp;
+
+				for (size_t j = 0; j < ARRAY_SIZE(params); j++)
+				{
+					params[j] = 0;
+
+					if (p != origp
+							&& !isspace(*p))
+						return -1;
+
+					p = skip_spaces(p);
+					if (!*p)
+						return -1;
+
+					if (*p == '*')
+					{
+						params[j] = -1;
+						p++;
+
+						if (*p != '/')
+							continue;
+						p++;
+					}
+
+					n = strtol(p, &endp, 10);
+					if (endp == p || n < 0)
+						return -1;
+					p = endp;
+
+					if (params[j] < 0)
+						n = -n;
+
+					params[j] = n;
+				}
+
+				p = skip_spaces(p);
+				if (*p)
+					return -1;
+
+				if (params[0] > 59
+						|| params[1] > 23
+						|| params[2] == 0 || params[2] > 31
+						|| params[3] == 0 || params[3] > 12)
+					return -1;
+
+				opt->data.as_cron.M = params[0];
+				opt->data.as_cron.H = params[1];
+				opt->data.as_cron.d = params[2];
+				opt->data.as_cron.m = params[3];
+				break;
+			}
 		}
 
 		opt->defined = 1;
@@ -175,6 +275,17 @@ const char *get_opt_str(struct opt *opts, enum opt_id id)
 		return NULL;
 
 	return opts[id].data.as_str;
+}
+
+struct opt_data_cron *get_opt_cron(struct opt *opts, enum opt_id id)
+{
+	if (id >= OPT_COUNT)
+		return NULL;
+
+	if (!opts[id].defined || opts[id].type != OPT_TYPE_CRON)
+		return NULL;
+
+	return &opts[id].data.as_cron;
 }
 
 
@@ -384,8 +495,15 @@ static void sig_handler(int num)
 
 int print_usage(int argc, char **argv)
 {
-	LOG("Usage: %s [-lock <lock_file>] [-w <warn_treshold>] [-c <crit_treshold>] [-security-update] [-update] [-y]\n", (argc >= 1) ? argv[0] : "check_pkg");
+	LOG("Usage: %s [-lock <lock_file> [-cron <cron_spec>]] [-w <warn_treshold>] [-c <crit_treshold>] [-security-update] [-update] [-y]\n", (argc >= 1) ? argv[0] : "check_pkg");
 	return 1;
+}
+
+static inline int tm_fix_cron(int tm_field, int cron_field) {
+	if (cron_field < 0)
+		return tm_field - tm_field % -cron_field;
+
+	return cron_field;
 }
 
 int main(int argc, char **argv)
@@ -393,9 +511,11 @@ int main(int argc, char **argv)
 #define OPT_NONE(e, n) [e] = { .type = OPT_TYPE_NONE, .name = n }
 #define OPT_STR(e, n) [e] = { .type = OPT_TYPE_STR, .name = n }
 #define OPT_INT(e, n) [e] = { .type = OPT_TYPE_INT, .name = n }
+#define OPT_CRON(e, n) [e] = { .type = OPT_TYPE_CRON, .name = n }
 #define OPT_END() [OPT_COUNT] = { .type = OPT_TYPE_INVAL, .name = NULL }
 	struct opt opt_tpl[] = {
 		OPT_INT(OPT_C, "-c"),
+		OPT_CRON(OPT_CRON, "-cron"),
 		OPT_STR(OPT_LOCK, "-lock"),
 		OPT_NONE(OPT_SECURITY_UPDATE, "-security-update"),
 		OPT_NONE(OPT_UPDATE, "-update"),
@@ -404,12 +524,14 @@ int main(int argc, char **argv)
 		OPT_END()
 	};
 #undef OPT_END
+#undef OPT_CRON
 #undef OPT_INT
 #undef OPT_STR
 #undef OPT_NONE
 	int status = 2;
 	const char *reason = "N/A";
 	int result = -1;
+	time_t now;
 	struct opt *opts;
 	int lock_fd;
 	int warn_treshold = INT_MAX;
@@ -428,8 +550,16 @@ int main(int argc, char **argv)
 	const char *panic_str;
 	gchar *nagios_is_a_useless_pile_of_shit = g_strdup("Security updates:\n");
 
+	now = time(NULL);
+
 	opts = parse_opts(argc, argv, opt_tpl);
 	if (!opts)
+		return print_usage(argc, argv);
+
+
+	if (
+			/* -cron requires -lock */
+			get_opt_defined(opts, OPT_CRON) && !get_opt_defined(opts, OPT_LOCK))
 		return print_usage(argc, argv);
 
 	lock_fd = -1;
@@ -454,6 +584,58 @@ int main(int argc, char **argv)
 			/* Skip if failed to acquire the lock */
 			status = 0;
 			goto fail_lock_lock;
+		}
+
+		if (get_opt_defined(opts, OPT_CRON))
+		{
+			ssize_t ssresult;
+			int len;
+			time_t prev_time;
+			time_t cur_time;
+			char buf[32];
+			char *endp;
+
+			prev_time = -1;
+			cur_time = now;
+
+			ssresult = read(lock_fd, buf, sizeof(buf) - 1);
+			if (ssresult > 0)
+			{
+				buf[ssresult] = '\0';
+
+				prev_time = strtoll(buf, &endp, 10);
+				if (endp == buf || *endp)
+					prev_time = -1;
+			}
+
+			if (prev_time >= 0)
+			{
+				struct opt_data_cron *dcron = get_opt_cron(opts, OPT_CRON);
+				struct tm tm = *localtime(&cur_time);
+				time_t last_period;
+				int can_exec;
+
+				tm.tm_sec = 0;
+				tm.tm_min = tm_fix_cron(tm.tm_min, dcron->M);
+				tm.tm_hour = tm_fix_cron(tm.tm_hour, dcron->H);
+				tm.tm_mday = tm_fix_cron(tm.tm_mday, dcron->d);
+				tm.tm_mon = tm_fix_cron(tm.tm_mon, dcron->m - 1);
+
+				last_period = mktime(&tm);
+
+				can_exec = last_period <= cur_time && prev_time < last_period;
+				if (!can_exec)
+				{
+					status = 0;
+					printf("UPDATE OK | Cron timeout not expired\n");
+					goto fail_cron;
+				}
+			}
+
+			lseek(lock_fd, 0, SEEK_SET);
+			ftruncate(lock_fd, 0);
+			len = snprintf(buf, sizeof(buf), "%lld", (long long int)cur_time);
+			write(lock_fd, buf, len);
 		}
 	}
 
@@ -763,6 +945,7 @@ fail_new_cli:
 	if (gerror)
 		g_error_free(gerror);
 
+fail_cron:
 	if (lock_fd >= 0)
 	{
 		struct flock lck = {
@@ -779,6 +962,5 @@ fail_lock_lock:
 		close(lock_fd);
 
 fail_open_lock:
-
 	return status;
 }
