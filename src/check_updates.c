@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <fcntl.h>
 #include <signal.h>
+#include <unistd.h>
 
 #include <gio/gio.h>
 #include <glib.h>
@@ -13,12 +15,15 @@
 
 #include <packagekit-glib2/packagekit.h>
 
+#define DEFAULT_FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
+
 
 /***** Options handling *****/
 
 enum opt_id
 {
 	OPT_C = 0,
+	OPT_LOCK,
 	OPT_SECURITY_UPDATE,
 	OPT_UPDATE,
 	OPT_W,
@@ -379,7 +384,7 @@ static void sig_handler(int num)
 
 int print_usage(int argc, char **argv)
 {
-	LOG("Usage: %s [-w <warn_treshold>] [-c <crit_treshold>] [-security-update] [-update] [-y]\n", (argc >= 1) ? argv[0] : "check_pkg");
+	LOG("Usage: %s [-lock <lock_file>] [-w <warn_treshold>] [-c <crit_treshold>] [-security-update] [-update] [-y]\n", (argc >= 1) ? argv[0] : "check_pkg");
 	return 1;
 }
 
@@ -391,6 +396,7 @@ int main(int argc, char **argv)
 #define OPT_END() [OPT_COUNT] = { .type = OPT_TYPE_INVAL, .name = NULL }
 	struct opt opt_tpl[] = {
 		OPT_INT(OPT_C, "-c"),
+		OPT_STR(OPT_LOCK, "-lock"),
 		OPT_NONE(OPT_SECURITY_UPDATE, "-security-update"),
 		OPT_NONE(OPT_UPDATE, "-update"),
 		OPT_INT(OPT_W, "-w"),
@@ -401,10 +407,11 @@ int main(int argc, char **argv)
 #undef OPT_INT
 #undef OPT_STR
 #undef OPT_NONE
-	int status;
+	int status = 2;
 	const char *reason = "N/A";
 	int result = -1;
 	struct opt *opts;
+	int lock_fd;
 	int warn_treshold = INT_MAX;
 	int crit_treshold = INT_MAX;
 	int must_upd_pkg = 0;
@@ -424,6 +431,31 @@ int main(int argc, char **argv)
 	opts = parse_opts(argc, argv, opt_tpl);
 	if (!opts)
 		return print_usage(argc, argv);
+
+	lock_fd = -1;
+
+	if (get_opt_defined(opts, OPT_LOCK))
+	{
+		const char *lock_filename = get_opt_str(opts, OPT_LOCK);
+		struct flock lck = {
+			.l_type = F_WRLCK,
+			.l_whence = SEEK_SET,
+			.l_start = 0,
+			.l_len = 0
+		};
+
+		lock_fd = open(lock_filename, O_CREAT | O_RDWR, DEFAULT_FILE_MODE);
+		if (lock_fd < 0)
+			goto fail_open_lock;
+
+		result = fcntl(lock_fd, F_SETLK, &lck);
+		if (result < 0)
+		{
+			/* Skip if failed to acquire the lock */
+			status = 0;
+			goto fail_lock_lock;
+		}
+	}
 
 	if (get_opt_defined(opts, OPT_W))
 		warn_treshold = get_opt_int(opts, OPT_W);
@@ -730,6 +762,23 @@ fail_new_cli:
 
 	if (gerror)
 		g_error_free(gerror);
+
+	if (lock_fd >= 0)
+	{
+		struct flock lck = {
+			.l_type = F_UNLCK,
+			.l_whence = SEEK_SET,
+			.l_start = 0,
+			.l_len = 0
+		};
+		fcntl(lock_fd, F_SETLK, &lck);
+	}
+
+fail_lock_lock:
+	if (lock_fd >= 0)
+		close(lock_fd);
+
+fail_open_lock:
 
 	return status;
 }
