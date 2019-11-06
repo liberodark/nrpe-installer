@@ -495,7 +495,30 @@ static void sig_handler(int num)
 
 int print_usage(int argc, char **argv)
 {
-	LOG("Usage: %s [-lock <lock_file> [-cron <cron_spec>]] [-w <warn_treshold>] [-c <crit_treshold>] [-security-update] [-update] [-y]\n", (argc >= 1) ? argv[0] : "check_pkg");
+
+	fprintf(stderr,
+			"Usage: %s [-lock <lock_file> [-cron <cron_spec>]] [-w <warn_treshold>] [-c <crit_treshold>] [-security-update] [-update] [-y]\n"
+			"\n"
+			"Global options:\n"
+			"    -lock <lock_file>        Avoid concurrent execution by locking <lock_file>\n"
+			"                             upon startup\n"
+			"    -cron <cron_spec>        Abort execution if runned before the end of\n"
+			"                             the current period\n"
+			"                             Requires -lock\n"
+			"                             Refer to the <cron_spec> section\n"
+			"\n"
+			"<cron_spec>: Simplified cron expression, must be one of the following:\n"
+			"    <M> <H> <d> <m>          Any of them can be either a number, * or */<n>, with:\n"
+			"                                 <M>: Minute [0-59]\n"
+			"                                 <H>: Hour [0-23]\n"
+			"                                 <d>: Day of the month [1-31]\n"
+			"                                 <m>: Month [1-12]\n"
+			"    @hourly                  Same as 0 * * *\n"
+			"    @daily                   Same as 0 0 * *\n"
+			"    @midnight                Same as @daily\n"
+			"    @monthly                 Same as 0 0 1 *\n"
+			"    @annually                Same as 0 0 1 1\n"
+			"    @yearly                  Same as @annually\n", (argc >= 1) ? argv[0] : "check_pkg");
 	return 1;
 }
 
