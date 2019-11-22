@@ -5,7 +5,7 @@
 # Thanks : frju365, Booti386, erdnaxeli
 # License: GNU GPLv3
 
-version="0.9.0"
+version="0.9.3"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -49,7 +49,7 @@ plugins_conf='
 command[service]=/usr/local/nagios/libexec/check_service.sh -o linux -t "systemctl list-units --state=failed"
 command[memory]=/usr/local/nagios/libexec/check_mem -w $ARG1$ -c $ARG2$
 command[cpu]=/usr/local/nagios/libexec/check_cpu -w $ARG1$ -c $ARG2$
-command[update]=sudo /usr/local/nagios/libexec/check_updates -w $ARG1$ -c $ARG2$
+command[update]=sudo /usr/local/nagios/libexec/check_updates -lock /tmp/check_updates.lock -w $ARG1$ -c $ARG2$
 command[users]=/usr/local/nagios/libexec/check_users -w $ARG1$ -c $ARG2$
 command[load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$
 command[check_load]=/usr/local/nagios/libexec/check_load -w $ARG1$ -c $ARG2$
@@ -113,23 +113,28 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
 
   if ! command -v nrpe; then
 
-    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red\ Hat || "$distribution" = Fedora || "$distribution" = Suse || "$distribution" = Oracle ]]; then
+    if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Suse" ] || [ "$distribution" = "Oracle" ]; then
       yum install -y make gcc glibc glibc-common openssl openssl-devel PackageKit
 
       compile_nrpe_ssl || exit
+      
+    elif [ "$distribution" = "Fedora" ]; then
+      dnf install -y make gcc glibc glibc-common openssl openssl-devel PackageKit
     
-    elif [[ "$distribution" = Debian || "$distribution" = Ubuntu || "$distribution" = Deepin ]]; then
+      compile_nrpe_ssl || exit
+    
+    elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
       apt-get update
       apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev libssl-dev openssl packagekit --force-yes
     
       compile_nrpe_ssl || exit
       
-    elif [[ "$distribution" = Clear ]]; then
+    elif [ "$distribution" = "Clear" ]; then
       swupd bundle-add make c-basic-legacy openssl devpkg-openssl ansible packagekit
     
       compile_nrpe_ssl || exit
       
-    elif [[ "$distribution" = Manjaro || "$distribution" = Arch\ Linux ]]; then
+    elif [ "$distribution" = "Manjaro" ] || [ "$distribution" = "Arch\ Linux" ]; then
       pacman -S make autoconf automake gcc glibc libmcrypt  openssl packagekit --noconfirm
     
       compile_nrpe_ssl || exit
@@ -145,23 +150,28 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
 
   if ! command -v nrpe; then
 
-    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red\ Hat || "$distribution" = Fedora || "$distribution" = Suse || "$distribution" = Oracle ]]; then
+    if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Suse" ] || [ "$distribution" = "Oracle" ]; then
       yum install -y make gcc glibc glibc-common PackageKit
 
       compile_nrpe_nossl || exit
+      
+    elif [ "$distribution" = "Fedora" ]; then
+      dnf install -y make gcc glibc glibc-common openssl openssl-devel PackageKit
     
-    elif [[ "$distribution" = Debian || "$distribution" = Ubuntu || "$distribution" = Deepin ]]; then
+      compile_nrpe_nossl || exit
+    
+    elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
       apt-get update
       apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make packagekit --force-yes
     
       compile_nrpe_nossl || exit
       
-    elif [[ "$distribution" = Clear ]]; then
+    elif [ "$distribution" = "Clear" ]; then
       swupd bundle-add make c-basic-legacy openssl ansible packagekit
     
       compile_nrpe_nossl || exit
       
-    elif [[ "$distribution" = Manjaro || "$distribution" = Arch\ Linux ]]; then
+    elif [ "$distribution" = "Manjaro" ] || [ "$distribution" = "Arch\ Linux" ]; then
       pacman -S make autoconf automake gcc glibc libmcrypt packagekit --noconfirm
     
       compile_nrpe_nossl || exit
@@ -208,22 +218,22 @@ echo "Open Port NRPE Server"
 
   if [ $? != 1 ]; then
     
-    if [[ "$distribution" = CentOS || "$distribution" = CentOS || "$distribution" = Red || "$distribution" = RedHat || "$distribution" = Fedora || "$distribution" = Fedora || "$distribution" = Suse || "$distribution" = Oracle || "$distribution" = Clear ]]; then
+    if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Suse" ] || [ "$distribution" = "Oracle" ]; then
       #firewall-cmd --permanent --zone=public --add-port=$port/tcp 
       #firewall-cmd --reload
-      #iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
+      iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
       #sudo iptables-save > /etc/sysconfig/iptables
       #sudo chkconfig iptables on
       #sudo service iptables save
     
-    elif [[ "$distribution" = Debian || "$distribution" = Debian || "$distribution" = Ubuntu || "$distribution" = Ubuntu ]]; then
+    elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
       #apt-get install ufw -y
       #ufw default deny
       #ufw default allow outgoing
       #ufw allow 22/tcp && ufw allow 443/tcp && ufw allow $port/tcp
       #ufw enable
       #apt-get install iptables-persistent -y
-      #iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
+      iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
       #iptables-save > /etc/iptables/rules.v4
       
     fi
