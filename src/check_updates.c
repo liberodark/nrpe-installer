@@ -778,6 +778,7 @@ int main(int argc, char **argv)
 		PkUpdateDetail *upd;
 		const gchar *upd_pkg_id;
 		gchar **cve_urls;
+		const gchar *upd_text;
 		const gchar *changelog;
 		int have_upd_detail = 0;
 		int add_pkg = 0;
@@ -789,6 +790,7 @@ int main(int argc, char **argv)
 			upd = (PkUpdateDetail *)g_ptr_array_index(upds, i_upd);
 			upd_pkg_id = pk_update_detail_get_package_id(upd);
 			cve_urls = pk_update_detail_get_cve_urls(upd);
+			upd_text = pk_update_detail_get_update_text(upd);
 			changelog = pk_update_detail_get_changelog(upd);
 			int d;
 
@@ -828,6 +830,7 @@ int main(int argc, char **argv)
 
 		if (have_upd_detail
 				&& ((cve_urls && cve_urls[0])
+					|| (upd_text && strstr(upd_text, "CVE-"))
 					|| (changelog && strstr(changelog, "CVE-"))
 					|| (pkg_info & PK_INFO_ENUM_SECURITY)))
 			is_sec = 1;
