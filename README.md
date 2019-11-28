@@ -41,9 +41,9 @@ https://github.com/liberodark/nrpe-installer/wiki/Plugin-check_logs
 
 #### For check_updates :
 
-Debian : `apt install libpackagekit-glib2-dev`
+Debian : `sudo apt install -y libpackagekit-glib2-dev gcc`
 
-Centos : `yum install PackageKit-glib-devel`
+Centos : `sudo yum install -y PackageKit-glib-devel gcc`
 
 `gcc -g check_updates.c -o check_updates $(pkg-config --cflags --libs glib-2.0 packagekit-glib2 gio-2.0) -std=gnu99`
 
