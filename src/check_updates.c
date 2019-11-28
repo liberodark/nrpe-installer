@@ -687,7 +687,7 @@ int main(int argc, char **argv)
 		goto fail_new_cli;
 	}
 
-	pk_client_set_interactive(cli, TRUE);
+	pk_client_set_interactive(cli, FALSE);
 
 	pk_results = pk_client_refresh_cache(cli, TRUE, ctx.cancellable, progress_cb, &ctx, &gerror);
 	if (!pk_results)
