@@ -140,7 +140,7 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
       compile_nrpe_ssl || exit
       
     elif [ "$distribution" = "openSUSE" ] || [ "$distribution" = "SUSE" ]; then
-      zypper install -y make autoconf automake gcc glibc openssl PackageKit > /dev/null 2>&1
+      zypper install -y make autoconf automake gcc glibc openssl openssl-devel PackageKit > /dev/null 2>&1
     
       compile_nrpe_ssl || exit
 
