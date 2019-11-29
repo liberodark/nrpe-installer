@@ -113,7 +113,7 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
 
   if ! command -v nrpe > /dev/null 2>&1; then
 
-    if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Suse" ] || [ "$distribution" = "Oracle" ]; then
+    if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Oracle" ]; then
       yum install -y make gcc glibc glibc-common openssl openssl-devel PackageKit > /dev/null 2>&1
 
       compile_nrpe_ssl || exit
@@ -136,6 +136,11 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
       
     elif [ "$distribution" = "Manjaro" ] || [ "$distribution" = "Arch\ Linux" ]; then
       pacman -S make autoconf automake gcc glibc libmcrypt  openssl packagekit --noconfirm > /dev/null 2>&1
+    
+      compile_nrpe_ssl || exit
+      
+    elif [ "$distribution" = "openSUSE" ] || [ "$distribution" = "SUSE" ]; then
+      zypper install -y make autoconf automake gcc glibc openssl packagekit > /dev/null 2>&1
     
       compile_nrpe_ssl || exit
 
@@ -173,6 +178,11 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
       
     elif [ "$distribution" = "Manjaro" ] || [ "$distribution" = "Arch\ Linux" ]; then
       pacman -S make autoconf automake gcc glibc libmcrypt packagekit --noconfirm > /dev/null 2>&1
+    
+      compile_nrpe_nossl || exit
+      
+    elif [ "$distribution" = "openSUSE" ] || [ "$distribution" = "SUSE" ]; then
+       zypper install -y make autoconf automake gcc glibc packagekit > /dev/null 2>&1
     
       compile_nrpe_nossl || exit
 
