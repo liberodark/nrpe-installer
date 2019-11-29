@@ -114,6 +114,7 @@ https://www.op5.com/
 - Red Hat 7.x / 8.x
 - Fedora 15 / 31
 - Clear Linux 30110
+- OpenSUSE 15.x
 
 ### Linux Compatibility : (SysV / Upstart)
 
