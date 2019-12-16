@@ -225,8 +225,6 @@ sed -i "s@dont_blame_nrpe=0@dont_blame_nrpe=1@g" $nrpe_conf
 echo "Open Port NRPE Server"
 
 # Check OS & nrpe
-
-  if [ $? != 1 ]; then
     
     if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Suse" ] || [ "$distribution" = "Oracle" ]; then
       #firewall-cmd --permanent --zone=public --add-port=$port/tcp 
@@ -246,7 +244,6 @@ echo "Open Port NRPE Server"
       iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
       #iptables-save > /etc/iptables/rules.v4
       
-    fi
 fi
 
 #==============================================
