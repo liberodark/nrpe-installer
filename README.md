@@ -115,6 +115,8 @@ https://www.op5.com/
 - Fedora 15 / 31
 - Clear Linux 30110
 - OpenSUSE 15.x
+- Arch Linux
+- Manjaro
 
 ### Linux Compatibility : (SysV / Upstart)
 
