@@ -107,6 +107,7 @@ https://www.op5.com/
 ### Linux Compatibility : (Systemd)
 
 - Debian 8.x / 9.x / 10.x
+- Raspbian 8.x / 9.x / 10.x
 - Deepin 15.x
 - Ubuntu 16.04 / 19.10
 - Centos 7.x / 8.x
