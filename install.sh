@@ -123,7 +123,7 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
     
       compile_nrpe_ssl || exit
     
-    elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
+    elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
       apt-get update > /dev/null 2>&1
       apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev libssl-dev openssl packagekit --force-yes > /dev/null 2>&1
     
