@@ -32,6 +32,10 @@ git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && c
 
 #### For check_logs :
 
+Debian : `sudo apt install -y ?`
+
+Centos : `sudo yum install -y xz-devel openssl-devel gcc`
+
 `gcc -g check_logs.c -o check_logs -lcrypto -llzma -std=gnu99`
 
 ##### How to work check_logs plugin :
