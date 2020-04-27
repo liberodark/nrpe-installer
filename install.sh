@@ -202,7 +202,7 @@ read -r ip
 #==============================================
 
 while true; do
-    read -r -p "Compile with ssl ?" yn
+    read -r -p "Compile with ssl ? (y/n) :" yn
     case $yn in
         [Yy]* ) nrpe_ssl; break;;
         [Nn]* ) nrpe_nossl; break;;
