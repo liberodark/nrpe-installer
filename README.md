@@ -32,7 +32,7 @@ git clone https://github.com/liberodark/nrpe-installer && cd nrpe-installer && c
 
 #### For check_logs :
 
-Debian : `sudo apt-get install -y ?`
+Debian : `sudo apt-get install -y liblz-dev libssl-dev gcc`
 
 Centos : `sudo yum install -y xz-devel openssl-devel gcc`
 
