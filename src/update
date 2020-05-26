@@ -46,19 +46,34 @@ tar -xvf repo.tar.gz && rm -f repo.tar.gz
 fi
 }
 
+stop_service(){
+systemctl stop nrpe > /dev/null 2>&1
+systemctl stop docker > /dev/null 2>&1
+systemctl stop httpd > /dev/null 2>&1
+systemctl stop apache2 > /dev/null 2>&1
+systemctl stop mariadb > /dev/null 2>&1
+systemctl stop postgres > /dev/null 2>&1
+}
+
 make_update(){
 if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Oracle" ]; then
   detect_update || exit
   detect_yum_repo || exit
+  stop_service || exit
   check_updates -lock /tmp/check_updates.lock -update -y
+  reboot
       
 elif [ "$distribution" = "Fedora" ]; then
   detect_update || exit
+  stop_service || exit
   check_updates -lock /tmp/check_updates.lock -update -y
+  reboot
     
 elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
   detect_update || exit
+  stop_service || exit
   check_updates -lock /tmp/check_updates.lock -update -y
+  reboot
 fi
 }
 
