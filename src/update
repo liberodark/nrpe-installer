@@ -46,6 +46,7 @@ tar -xvf repo.tar.gz && rm -f repo.tar.gz
 fi
 }
 
+make_update(){
 if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Oracle" ]; then
   detect_update || exit
   detect_yum_repo || exit
@@ -60,3 +61,6 @@ elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$d
   detect_update || exit
   check_updates -lock /tmp/check_updates.lock -update -y
 fi
+}
+
+make_update || exit
