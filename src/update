@@ -60,23 +60,32 @@ systemctl stop mysqld > /dev/null 2>&1
 systemctl stop postgres > /dev/null 2>&1
 }
 
+fix_cache(){
+systemctl stop packagekit
+sed -i "s@#KeepCache=false@KeepCache=false@g" /etc/PackageKit/PackageKit.conf
+systemctl start packagekit
+}
+
 make_update(){
 if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Oracle" ]; then
   detect_update || exit
   detect_yum_repo || exit
-  stop_service || exit
+  stop_service
+  fix_cache
   check_updates -lock /tmp/check_updates.lock -update -y
   reboot
       
 elif [ "$distribution" = "Fedora" ]; then
   detect_update || exit
-  stop_service || exit
+  stop_service
+  fix_cache
   check_updates -lock /tmp/check_updates.lock -update -y
   reboot
     
 elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
   detect_update || exit
-  stop_service || exit
+  stop_service
+  fix_cache
   check_updates -lock /tmp/check_updates.lock -update -y
   reboot
 fi
