@@ -5,7 +5,7 @@
 # Thanks : frju365, Booti386, erdnaxeli
 # License: GNU GPLv3
 
-version="0.9.4"
+version="0.9.5"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -82,6 +82,7 @@ compile_nrpe_ssl(){
 
       pushd $nrpe_plugin || exit
       chmod +x ./check* && chown nagios:nagios ./check*
+      ln -s /usr/local/nagios/libexec/check_updates /usr/bin/check_updates
       echo -e "$plugins_conf" >> "$nrpe_conf"
       }
 
@@ -103,6 +104,7 @@ compile_nrpe_nossl(){
 
       pushd $nrpe_plugin || exit
       chmod +x ./check* && chown nagios:nagios ./check*
+      ln -s /usr/local/nagios/libexec/check_updates /usr/bin/check_updates
       echo -e "$plugins_conf" >> "$nrpe_conf"
       }
 
