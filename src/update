@@ -49,10 +49,12 @@ fi
 stop_service(){
 systemctl stop nrpe > /dev/null 2>&1
 systemctl stop docker > /dev/null 2>&1
+systemctl stop dockerd > /dev/null 2>&1
 systemctl stop httpd > /dev/null 2>&1
 systemctl stop apache2 > /dev/null 2>&1
 systemctl stop mariadb > /dev/null 2>&1
 systemctl stop mysql > /dev/null 2>&1
+systemctl stop mysqld > /dev/null 2>&1
 systemctl stop postgres > /dev/null 2>&1
 }
 
