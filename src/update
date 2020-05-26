@@ -57,7 +57,6 @@ elif [ "$distribution" = "Fedora" ]; then
   check_updates -lock /tmp/check_updates.lock -update -y
     
 elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
-  apt-get update > /dev/null 2>&1
   detect_update || exit
   check_updates -lock /tmp/check_updates.lock -update -y
 fi
