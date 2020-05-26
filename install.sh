@@ -224,8 +224,8 @@ sed -i "s@dont_blame_nrpe=0@dont_blame_nrpe=1@g" $nrpe_conf
 #==============================================
 # FIX CACHE
 #==============================================
-
 echo "Configure PackageKit"
+
 systemctl stop packagekit
 sed -i "s@#KeepCache=false@KeepCache=false@g" /etc/PackageKit/PackageKit.conf
 systemctl enable packagekit
