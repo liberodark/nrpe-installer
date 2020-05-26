@@ -19,6 +19,8 @@ if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
 # RETRIEVE ARGUMENTS FROM THE MANIFEST AND VAR
 #=================================================
 
+distribution=$(cat /etc/*release | grep "PRETTY_NAME" | sed 's/PRETTY_NAME=//g' | sed 's/["]//g' | awk '{print $1}')
+
 update="/usr/bin/check_updates"
 yum_conf="/etc/yum.repos.d/Centos-Base.repo"
 temp=$(mktemp)
@@ -34,7 +36,7 @@ ln -s /usr/local/nagios/libexec/check_updates /usr/bin/check_updates
 fi
 }
 
-detect_repo(){
+detect_yum_repo(){
 if [ -e "$yum_conf" ]; then
 echo "Error Yum configuration already is installed"
 mv /etc/yum.repos.d/* "$temp"
@@ -44,6 +46,17 @@ tar -xvf repo.tar.gz && rm -f repo.tar.gz
 fi
 }
 
-detect_update
-detect_repo
-check_updates -lock /tmp/check_updates.lock -update -y
+if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Oracle" ]; then
+  detect_update || exit
+  detect_yum_repo || exit
+  check_updates -lock /tmp/check_updates.lock -update -y
+      
+elif [ "$distribution" = "Fedora" ]; then
+  detect_update || exit
+  check_updates -lock /tmp/check_updates.lock -update -y
+    
+elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
+  apt-get update > /dev/null 2>&1
+  detect_update || exit
+  check_updates -lock /tmp/check_updates.lock -update -y
+fi
