@@ -73,21 +73,21 @@ if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$dis
   stop_service
   fix_cache
   check_updates -lock /tmp/check_updates.lock -update -y
-  reboot
+  sleep 2m && reboot
       
 elif [ "$distribution" = "Fedora" ]; then
   detect_update || exit
   stop_service
   fix_cache
   check_updates -lock /tmp/check_updates.lock -update -y
-  reboot
+  sleep 2m && reboot
     
 elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
   detect_update || exit
   stop_service
   fix_cache
   check_updates -lock /tmp/check_updates.lock -update -y
-  reboot
+  sleep 2m && reboot
 fi
 }
 
