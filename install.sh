@@ -222,6 +222,16 @@ sed -i "s@${rp}*@allowed_hosts=127.0.0.1,${ip}@g" $nrpe_conf
 sed -i "s@dont_blame_nrpe=0@dont_blame_nrpe=1@g" $nrpe_conf
 
 #==============================================
+# FIX CACHE
+#==============================================
+
+echo "Configure PackageKit"
+systemctl stop packagekit
+sed -i "s@#KeepCache=false@KeepCache=false@g" /etc/PackageKit/PackageKit.conf
+systemctl enable packagekit
+systemctl start packagekit
+
+#==============================================
 # FIREWALL
 #==============================================
 echo "Open Port NRPE Server"
