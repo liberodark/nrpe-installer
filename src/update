@@ -30,14 +30,14 @@ exec 9>"${lock}"
 flock -n 9 || exit
 
 detect_update(){
-if [ -e "$update" ]; then
+if [ -z "$update" ]; then
 echo "Error check_updates is not installed correctly"
 ln -s /usr/local/nagios/libexec/check_updates /usr/bin/check_updates
 fi
 }
 
 detect_yum_repo(){
-if [ -e "$yum_conf" ]; then
+if [ -z "$yum_conf" ]; then
 echo "Error Yum configuration already is installed"
 mv /etc/yum.repos.d/* "$temp"
 cd /etc/yum.repos.d/ || exit
