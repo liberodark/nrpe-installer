@@ -27,11 +27,14 @@ lock="/tmp/auto-update.lock"
 exec 9>"${lock}"
 flock -n 9 || exit
 
+detect_update(){
 if [ -e "$update" ]; then
 echo "Error check_updates is not installed correctly"
 ln -s /usr/local/nagios/libexec/check_updates /usr/bin/check_updates
 fi
+}
 
+detect_repo(){
 if [ -e "$yum_conf" ]; then
 echo "Error Yum configuration already is installed"
 mv /etc/yum.repos.d/* "$temp"
@@ -39,5 +42,8 @@ cd /etc/yum.repos.d/ || exit
 wget http://10.17.32.24/repo/repo.tar.gz
 tar -xvf repo.tar.gz && rm -f repo.tar.gz
 fi
+}
 
+detect_update
+detect_repo
 check_updates -lock /tmp/check_updates.lock -update -y
