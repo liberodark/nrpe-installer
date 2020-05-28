@@ -85,6 +85,7 @@ if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$dis
   fix_cache || exit
   pkcon_refresh || exit
   check_updates -lock /tmp/check_updates.lock -update -y
+  echo "Update Finish : System wheel reboot in 2 mins !!!"
   sleep 2m && reboot
       
 elif [ "$distribution" = "Fedora" ]; then
@@ -93,6 +94,7 @@ elif [ "$distribution" = "Fedora" ]; then
   fix_cache || exit
   pkcon_refresh || exit
   check_updates -lock /tmp/check_updates.lock -update -y
+  echo "Update Finish : System wheel reboot in 2 mins !!!"
   sleep 2m && reboot
     
 elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
@@ -101,6 +103,7 @@ elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$d
   fix_cache || exit
   pkcon_refresh || exit
   check_updates -lock /tmp/check_updates.lock -update -y
+  echo "Update Finish : System wheel reboot in 2 mins !!!"
   sleep 2m && reboot
 fi
 }
