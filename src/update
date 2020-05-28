@@ -37,12 +37,11 @@ ln -s /usr/local/nagios/libexec/check_updates /usr/bin/check_updates
 fi
 }
 
-
-
 detect_yum_repo(){
 if [ -f "$yum_conf" ]; then
 echo "Error Yum configuration already is installed"
 sed -i "s@enabled=1@enabled=0@g" /etc/yum/pluginconf.d/fastestmirror.conf
+exit
 fi
 }
 
@@ -79,7 +78,7 @@ elif [ "$distribution" = "Fedora" ]; then
   stop_service
   fix_cache
   check_updates -lock /tmp/check_updates.lock -update -y
-  #sleep 2m && reboot
+  sleep 2m && reboot
     
 elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
   detect_update || exit
