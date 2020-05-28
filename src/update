@@ -82,24 +82,24 @@ if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$dis
   detect_yum_repo || exit
   detect_yum_fastestmirror || exit
   stop_service
-  fix_cache
-  pkcon_refresh
+  fix_cache || exit
+  pkcon_refresh || exit
   check_updates -lock /tmp/check_updates.lock -update -y
   sleep 2m && reboot
       
 elif [ "$distribution" = "Fedora" ]; then
   detect_update || exit
   stop_service
-  fix_cache
-  pkcon_refresh
+  fix_cache || exit
+  pkcon_refresh || exit
   check_updates -lock /tmp/check_updates.lock -update -y
   sleep 2m && reboot
     
 elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
   detect_update || exit
   stop_service
-  fix_cache
-  pkcon_refresh
+  fix_cache || exit
+  pkcon_refresh || exit
   check_updates -lock /tmp/check_updates.lock -update -y
   sleep 2m && reboot
 fi
