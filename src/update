@@ -40,7 +40,6 @@ fi
 detect_yum_repo(){
 if [ -f "$yum_conf" ]; then
 echo "Error Yum configuration already is installed"
-rpm -e --nodeps yum-plugin-fastestmirror
 mkdir -p "$dest""$date"
 mv /etc/yum.repos.d/* "$dest""$date"
 cd /etc/yum.repos.d/ || exit
