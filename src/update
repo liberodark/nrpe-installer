@@ -37,16 +37,12 @@ ln -s /usr/local/nagios/libexec/check_updates /usr/bin/check_updates
 fi
 }
 
+
+
 detect_yum_repo(){
 if [ -f "$yum_conf" ]; then
 echo "Error Yum configuration already is installed"
 sed -i "s@enabled=1@enabled=0@g" /etc/yum/pluginconf.d/fastestmirror.conf
-mkdir -p "$dest""$date"
-mv /etc/yum.repos.d/* "$dest""$date"
-cd /etc/yum.repos.d/ || exit
-wget http://10.17.32.24/repo/repo.tar.gz
-tar -xvf repo.tar.gz && rm -f repo.tar.gz
-rm -f glpi.repo docker.repo mariadb.repo nodejs.repo php.repo
 fi
 }
 
