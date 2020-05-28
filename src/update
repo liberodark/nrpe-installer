@@ -73,7 +73,7 @@ systemctl start packagekit
 
 pkcon_refresh(){
 rm -rf /var/cache/PackageKit
-pkcon refresh force -c -1
+pkcon refresh force -c -1 > /dev/null 2>&1
 }
 
 make_update(){
