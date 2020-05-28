@@ -47,7 +47,7 @@ fi
 detect_yum_repo(){
 if [ -f "$yum_conf" ]; then
 echo "Error Yum configuration already is installed"
-exit
+rm -f CentOS-* epel*
 fi
 }
 
