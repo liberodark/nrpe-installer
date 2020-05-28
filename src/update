@@ -23,6 +23,7 @@ distribution=$(cat /etc/*release | grep "PRETTY_NAME" | sed 's/PRETTY_NAME=//g' 
 
 update="/usr/bin/check_updates"
 yum_conf="/etc/yum.repos.d/CentOS-Base.repo"
+yum_fastestmirror="/etc/yum/pluginconf.d/fastestmirror.conf"
 date=$(date +%Y.%m.%d_%H-%M-%S)
 dest="/root/yum-backup/"
 lock="/tmp/auto-update.lock"
@@ -37,10 +38,15 @@ ln -s /usr/local/nagios/libexec/check_updates /usr/bin/check_updates
 fi
 }
 
+detect_yum_fastestmirror(){
+if [ -f "$yum_fastestmirror" ]; then
+sed -i "s@enabled=1@enabled=0@g" /etc/yum/pluginconf.d/fastestmirror.conf
+fi
+}
+
 detect_yum_repo(){
 if [ -f "$yum_conf" ]; then
 echo "Error Yum configuration already is installed"
-sed -i "s@enabled=1@enabled=0@g" /etc/yum/pluginconf.d/fastestmirror.conf
 exit
 fi
 }
@@ -68,6 +74,7 @@ make_update(){
 if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Oracle" ]; then
   detect_update || exit
   detect_yum_repo || exit
+  detect_yum_fastestmirror || exit
   stop_service
   fix_cache
   check_updates -lock /tmp/check_updates.lock -update -y
