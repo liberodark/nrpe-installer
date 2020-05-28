@@ -5,7 +5,7 @@
 # Thanks :
 # License: GNU GPLv3
 
-version="0.0.5"
+version="0.0.6"
 
 echo "Welcome on Auto Update Script $version"
 
@@ -71,6 +71,11 @@ sed -i "s@#KeepCache=false@KeepCache=false@g" /etc/PackageKit/PackageKit.conf
 systemctl start packagekit
 }
 
+pkcon_refresh(){
+rm -rf /var/cache/PackageKit
+pkcon refresh force -c -1
+}
+
 make_update(){
 if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Oracle" ]; then
   detect_update || exit
@@ -78,6 +83,7 @@ if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$dis
   detect_yum_fastestmirror || exit
   stop_service
   fix_cache
+  pkcon_refresh
   check_updates -lock /tmp/check_updates.lock -update -y
   sleep 2m && reboot
       
@@ -85,6 +91,7 @@ elif [ "$distribution" = "Fedora" ]; then
   detect_update || exit
   stop_service
   fix_cache
+  pkcon_refresh
   check_updates -lock /tmp/check_updates.lock -update -y
   sleep 2m && reboot
     
@@ -92,6 +99,7 @@ elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$d
   detect_update || exit
   stop_service
   fix_cache
+  pkcon_refresh
   check_updates -lock /tmp/check_updates.lock -update -y
   sleep 2m && reboot
 fi
