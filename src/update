@@ -5,7 +5,7 @@
 # Thanks :
 # License: GNU GPLv3
 
-version="0.0.6"
+version="0.0.7"
 
 echo "Welcome on Auto Update Script $version"
 
@@ -47,6 +47,8 @@ fi
 detect_yum_repo(){
 if [ -f "$yum_conf" ]; then
 echo "Error Yum configuration already is installed"
+mkdir -p /root/.backup-repo
+cp -a /etc/yum.repos.d /root/.backup-repo/"$date"
 cd /etc/yum.repos.d/ || exit
 rm -f !("myrepo.repo")
 fi
