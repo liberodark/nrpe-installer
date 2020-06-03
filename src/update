@@ -50,7 +50,7 @@ echo "Error Yum configuration already is installed"
 mkdir -p "$dest"
 cp -a /etc/yum.repos.d "$dest"/"$date"
 cd /etc/yum.repos.d/ || exit
-rm -f !("myrepo.repo")
+rm -f !"myrepo.repo"
 fi
 }
 
