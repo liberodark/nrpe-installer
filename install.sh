@@ -5,7 +5,7 @@
 # Thanks : frju365, Booti386, erdnaxeli
 # License: GNU GPLv3
 
-version="0.9.5"
+version="0.9.6"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -127,7 +127,7 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
     
     elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
       apt-get update > /dev/null 2>&1
-      apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev libssl-dev openssl packagekit --force-yes > /dev/null 2>&1
+      apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev libssl-dev openssl packagekit packagekit-tools --force-yes > /dev/null 2>&1
     
       compile_nrpe_ssl || exit
       
