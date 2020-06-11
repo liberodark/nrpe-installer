@@ -5,7 +5,7 @@
 # Thanks :
 # License: GNU GPLv3
 
-version="0.0.8"
+version="0.0.9"
 
 echo "Welcome on Auto Update Script $version"
 
@@ -74,8 +74,35 @@ sed -i "s@#KeepCache=false@KeepCache=false@g" /etc/PackageKit/PackageKit.conf
 systemctl start packagekit
 }
 
+pkcon_check(){
+if ! command -v pkcon > /dev/null 2>&1; then
+
+    if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Oracle" ]; then
+      yum install -y PackageKit > /dev/null 2>&1
+      
+    elif [ "$distribution" = "Fedora" ]; then
+      dnf install -y PackageKit > /dev/null 2>&1
+    
+    elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
+      apt-get update > /dev/null 2>&1
+      apt-get install -y packagekit packagekit-tools > /dev/null 2>&1
+      
+    elif [ "$distribution" = "Clear" ]; then
+      swupd bundle-add packagekit > /dev/null 2>&1
+      
+    elif [ "$distribution" = "Manjaro" ] || [ "$distribution" = "Arch\ Linux" ]; then
+      pacman -S packagekit --noconfirm > /dev/null 2>&1
+      
+    elif [ "$distribution" = "openSUSE" ] || [ "$distribution" = "SUSE" ]; then
+      zypper install -y PackageKit > /dev/null 2>&1
+
+    fi
+fi
+}
+
 pkcon_refresh(){
 rm -rf /var/cache/PackageKit
+#pkcon_check || exit
 pkcon refresh force -c -1 > /dev/null 2>&1
 }
 
