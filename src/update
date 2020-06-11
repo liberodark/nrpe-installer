@@ -40,6 +40,7 @@ fi
 
 detect_yum_fastestmirror(){
 if [ -f "$yum_fastestmirror" ]; then
+echo "Remove Yum fastestmirror"
 sed -i "s@enabled=1@enabled=0@g" /etc/yum/pluginconf.d/fastestmirror.conf
 fi
 }
@@ -55,6 +56,7 @@ fi
 }
 
 stop_service(){
+echo "Trying to stop Services"
 systemctl stop nrpe > /dev/null 2>&1
 systemctl stop docker > /dev/null 2>&1
 systemctl stop dockerd > /dev/null 2>&1
@@ -68,14 +70,9 @@ systemctl stop mysqld > /dev/null 2>&1
 systemctl stop postgres > /dev/null 2>&1
 }
 
-fix_cache(){
-systemctl stop packagekit
-sed -i "s@#KeepCache=false@KeepCache=false@g" /etc/PackageKit/PackageKit.conf
-systemctl start packagekit
-}
-
 pkcon_check(){
 if ! command -v pkcon > /dev/null 2>&1; then
+echo "Install PackageKit ($distribution)"
 
     if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Oracle" ]; then
       yum install -y PackageKit > /dev/null 2>&1
@@ -100,7 +97,15 @@ if ! command -v pkcon > /dev/null 2>&1; then
 fi
 }
 
+fix_cache(){
+echo "Fix PackageKit Cache"
+systemctl stop packagekit
+sed -i "s@#KeepCache=false@KeepCache=false@g" /etc/PackageKit/PackageKit.conf
+systemctl start packagekit
+}
+
 pkcon_refresh(){
+echo "Pkcon Refresh Cache"
 rm -rf /var/cache/PackageKit
 pkcon refresh force -c -1 > /dev/null 2>&1
 }
