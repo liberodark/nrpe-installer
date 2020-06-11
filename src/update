@@ -59,6 +59,7 @@ systemctl stop nrpe > /dev/null 2>&1
 systemctl stop docker > /dev/null 2>&1
 systemctl stop dockerd > /dev/null 2>&1
 systemctl stop httpd > /dev/null 2>&1
+systemctl stop nginx > /dev/null 2>&1
 systemctl stop apache2 > /dev/null 2>&1
 systemctl stop tomcat > /dev/null 2>&1
 systemctl stop mariadb > /dev/null 2>&1
