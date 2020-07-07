@@ -5,7 +5,7 @@
 # Thanks :
 # License: GNU GPLv3
 
-version="0.1.0"
+version="0.1.1"
 
 echo "Welcome on Auto Update Script $version"
 
@@ -68,6 +68,7 @@ systemctl stop mariadb > /dev/null 2>&1
 systemctl stop mysql > /dev/null 2>&1
 systemctl stop mysqld > /dev/null 2>&1
 systemctl stop postgres > /dev/null 2>&1
+systemctl stop rsyslog > /dev/null 2>&1
 }
 
 pkcon_check(){
