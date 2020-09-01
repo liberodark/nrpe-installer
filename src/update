@@ -142,8 +142,8 @@ elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$d
   fix_cache || exit
   pkcon_refresh || exit
   check_updates -lock /tmp/check_updates.lock -update -y
-  echo "Update Finish : System wheel reboot in 2 mins !!!"
-  sleep 2m && shutdown -r now
+  echo "\e[31mUpdate Finish : System wheel reboot in 2 mins !!!\e[0m"
+  shutdown -r +2
 fi
 }
 
