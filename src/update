@@ -5,7 +5,7 @@
 # Thanks :
 # License: GNU GPLv3
 
-version="0.1.1"
+version="0.1.2"
 
 echo "Welcome on Auto Update Script $version"
 
@@ -143,7 +143,7 @@ elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$d
   pkcon_refresh || exit
   check_updates -lock /tmp/check_updates.lock -update -y
   echo "Update Finish : System wheel reboot in 2 mins !!!"
-  sleep 2m && reboot
+  sleep 2m && shutdown -r now
 fi
 }
 
