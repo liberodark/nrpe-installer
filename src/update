@@ -112,6 +112,11 @@ rm -rf /var/cache/PackageKit
 pkcon refresh force -c -1 > /dev/null 2>&1
 }
 
+reboot_os(){
+echo "\e[31mUpdate Finish : System wheel reboot in 2 mins !!!\e[0m"
+shutdown -r +2
+}
+
 make_update(){
 if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Oracle" ]; then
   detect_update || exit
@@ -122,8 +127,7 @@ if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$dis
   fix_cache || exit
   pkcon_refresh || exit
   check_updates -lock /tmp/check_updates.lock -update -y
-  echo "Update Finish : System wheel reboot in 2 mins !!!"
-  sleep 2m && reboot
+  reboot_os
       
 elif [ "$distribution" = "Fedora" ]; then
   detect_update || exit
@@ -132,8 +136,7 @@ elif [ "$distribution" = "Fedora" ]; then
   fix_cache || exit
   pkcon_refresh || exit
   check_updates -lock /tmp/check_updates.lock -update -y
-  echo "Update Finish : System wheel reboot in 2 mins !!!"
-  sleep 2m && reboot
+  reboot_os
     
 elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
   detect_update || exit
@@ -142,8 +145,7 @@ elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$d
   fix_cache || exit
   pkcon_refresh || exit
   check_updates -lock /tmp/check_updates.lock -update -y
-  echo "\e[31mUpdate Finish : System wheel reboot in 2 mins !!!\e[0m"
-  shutdown -r +2
+  reboot_os
 fi
 }
 
