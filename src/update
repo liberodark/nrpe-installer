@@ -113,7 +113,7 @@ pkcon refresh force -c -1 > /dev/null 2>&1
 }
 
 reboot_os(){
-echo "\e[31mUpdate Finish : System wheel reboot in 2 mins !!!\e[0m"
+echo -e "\e[31mUpdate Finish : System wheel reboot in 2 mins\e[0m"
 shutdown -r +2
 }
 
