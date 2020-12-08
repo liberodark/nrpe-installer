@@ -55,6 +55,13 @@ rm -f $(ls -I "myrepo.repo" )
 fi
 }
 
+gitlab_check(){
+if ! command -v gitlab-ctl > /dev/null 2>&1; then
+echo "Stop Gitlab services"
+gitlab-ctl stop
+fi
+}
+
 stop_service(){
 echo "Trying to stop Services"
 systemctl stop nrpe > /dev/null 2>&1
@@ -70,13 +77,6 @@ systemctl stop mysqld > /dev/null 2>&1
 systemctl stop postgres > /dev/null 2>&1
 systemctl stop rsyslog > /dev/null 2>&1
 systemctl stop nagios > /dev/null 2>&1
-}
-
-gitlab_check(){
-if ! command -v gitlab-ctl > /dev/null 2>&1; then
-echo "Stop Gitlab services"
-gitlab-ctl stop
-fi
 }
 
 pkcon_check(){
@@ -129,8 +129,8 @@ if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$dis
   detect_update || exit
   detect_yum_repo || exit
   detect_yum_fastestmirror || exit
-  stop_service
   gitlab_check || exit
+  stop_service
   pkcon_check || exit
   fix_cache || exit
   pkcon_refresh || exit
@@ -139,8 +139,8 @@ if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$dis
       
 elif [ "$distribution" = "Fedora" ]; then
   detect_update || exit
-  stop_service
   gitlab_check || exit
+  stop_service
   pkcon_check || exit
   fix_cache || exit
   pkcon_refresh || exit
@@ -149,8 +149,8 @@ elif [ "$distribution" = "Fedora" ]; then
     
 elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
   detect_update || exit
-  stop_service
   gitlab_check || exit
+  stop_service
   pkcon_check || exit
   fix_cache || exit
   pkcon_refresh || exit
