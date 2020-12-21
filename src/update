@@ -124,7 +124,7 @@ pkcon refresh force -c -1 > /dev/null 2>&1
 reboot_os(){
 echo -e "\e[31mUpdate Finish : System wheel reboot in 30s\e[0m"
 sleep 30
-shutdown -r now || reboot -p || reboot -f
+shutdown -r now || sudo reboot -p || sudo reboot -f
 }
 
 make_update(){
