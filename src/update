@@ -5,7 +5,7 @@
 # Thanks :
 # License: GNU GPLv3
 
-version="0.1.5"
+version="0.1.6"
 
 echo "Welcome on Auto Update Script $version"
 
@@ -73,6 +73,7 @@ systemctl stop httpd > /dev/null 2>&1
 systemctl stop nginx > /dev/null 2>&1
 systemctl stop apache2 > /dev/null 2>&1
 systemctl stop tomcat > /dev/null 2>&1
+systemctl stop gitea > /dev/null 2>&1
 systemctl stop mariadb > /dev/null 2>&1
 systemctl stop mysql > /dev/null 2>&1
 systemctl stop mysqld > /dev/null 2>&1
