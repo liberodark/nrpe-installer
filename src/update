@@ -78,6 +78,7 @@ systemctl stop mariadb > /dev/null 2>&1
 systemctl stop mysql > /dev/null 2>&1
 systemctl stop mysqld > /dev/null 2>&1
 systemctl stop postgres > /dev/null 2>&1
+systemctl stop postgresql-* > /dev/null 2>&1
 systemctl stop rsyslog > /dev/null 2>&1
 systemctl stop nagios > /dev/null 2>&1
 }
