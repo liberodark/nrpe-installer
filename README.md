@@ -1,4 +1,4 @@
-# NRPE Installer
+# NRPE Installerd
 
 Nagios NRPE Installer is a script for install NRPE with a same configaration on most linux very easily.
 
