@@ -5,7 +5,7 @@
 # Thanks : frju365, Booti386, erdnaxeli
 # License: GNU GPLv3
 
-version="0.9.6"
+version="0.9.7"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -115,7 +115,7 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
 
   if ! command -v nrpe > /dev/null 2>&1; then
 
-    if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Oracle" ]; then
+    if [ "$distribution" = "CentOS" ] || [ "$distribution" = "AlmaLinux" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Oracle" ]; then
       yum install -y make gcc glibc glibc-common openssl openssl-devel PackageKit > /dev/null 2>&1
 
       compile_nrpe_ssl || exit
