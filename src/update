@@ -5,7 +5,7 @@
 # Thanks :
 # License: GNU GPLv3
 
-version="0.1.7"
+version="0.1.8"
 
 echo "Welcome on Auto Update Script $version"
 
@@ -153,7 +153,7 @@ elif [ "$distribution" = "Fedora" ]; then
   check_updates -lock /tmp/check_updates.lock -update -y
   reboot_os
     
-elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
+elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Armbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
   detect_update || exit
   gitlab_check || exit
   stop_service
