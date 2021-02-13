@@ -94,7 +94,7 @@ echo "Install PackageKit ($distribution)"
     elif [ "$distribution" = "Fedora" ]; then
       dnf install -y PackageKit > /dev/null 2>&1
     
-    elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
+    elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Armbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
       apt-get update > /dev/null 2>&1
       apt-get install -y packagekit packagekit-tools > /dev/null 2>&1
       
