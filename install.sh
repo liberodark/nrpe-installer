@@ -5,7 +5,7 @@
 # Thanks : frju365, Booti386, erdnaxeli
 # License: GNU GPLv3
 
-version="0.9.7"
+version="0.9.8"
 
 echo "Welcome on NRPE Install Script $version"
 
@@ -125,7 +125,7 @@ echo "Install Nagios NRPE Server with SSL ($distribution)"
     
       compile_nrpe_ssl || exit
     
-    elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
+    elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Armbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
       apt-get update > /dev/null 2>&1
       apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev libssl-dev openssl packagekit packagekit-tools --force-yes > /dev/null 2>&1
     
@@ -157,7 +157,7 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
 
   if ! command -v nrpe > /dev/null 2>&1; then
 
-    if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Suse" ] || [ "$distribution" = "Oracle" ]; then
+    if [ "$distribution" = "CentOS" ] || [ "$distribution" = "AlmaLinux" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Suse" ] || [ "$distribution" = "Oracle" ]; then
       yum install -y make gcc glibc glibc-common PackageKit > /dev/null 2>&1
 
       compile_nrpe_nossl || exit
@@ -167,7 +167,7 @@ echo "Install Nagios NRPE Server without SSL ($distribution)"
     
       compile_nrpe_nossl || exit
     
-    elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
+    elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Armbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
       apt-get update > /dev/null 2>&1
       apt-get install -y make autoconf automake gcc libc6 libmcrypt-dev make packagekit --force-yes > /dev/null 2>&1
     
@@ -238,7 +238,7 @@ echo "Open Port NRPE Server"
 
 # Check OS & nrpe
     
-    if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Suse" ] || [ "$distribution" = "Oracle" ]; then
+    if [ "$distribution" = "CentOS" ] || [ "$distribution" = "AlmaLinux" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Suse" ] || [ "$distribution" = "Oracle" ]; then
       #firewall-cmd --permanent --zone=public --add-port=$port/tcp 
       #firewall-cmd --reload
       iptables -I INPUT -p tcp --destination-port $port -j ACCEPT
@@ -246,7 +246,7 @@ echo "Open Port NRPE Server"
       #sudo chkconfig iptables on
       #sudo service iptables save
     
-    elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
+    elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Armbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
       #apt-get install ufw -y
       #ufw default deny
       #ufw default allow outgoing
