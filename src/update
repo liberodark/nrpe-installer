@@ -135,7 +135,7 @@ if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$dis
   detect_update || exit
   detect_yum_repo || exit
   detect_yum_fastestmirror || exit
-  gitlab_check || exit
+  gitlab_check
   stop_service
   pkcon_check || exit
   fix_cache || exit
@@ -145,7 +145,7 @@ if [ "$distribution" = "CentOS" ] || [ "$distribution" = "Red\ Hat" ] || [ "$dis
       
 elif [ "$distribution" = "Fedora" ]; then
   detect_update || exit
-  gitlab_check || exit
+  gitlab_check
   stop_service
   pkcon_check || exit
   fix_cache || exit
@@ -155,7 +155,7 @@ elif [ "$distribution" = "Fedora" ]; then
     
 elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Armbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
   detect_update || exit
-  gitlab_check || exit
+  gitlab_check
   stop_service
   pkcon_check || exit
   fix_cache || exit
