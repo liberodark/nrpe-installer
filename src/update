@@ -50,8 +50,7 @@ if [ -f "$yum_conf" ]; then
 echo "Error Yum configuration already is installed"
 mkdir -p "$dest"
 cp -a /etc/yum.repos.d "$dest"/"$date"
-cd /etc/yum.repos.d/ || exit
-rm -f $(ls -I "myrepo.repo" )
+find /etc/yum.repos.d/ -type f -not -name 'myrepo.repo' -delete
 fi
 }
 
@@ -90,7 +89,7 @@ pkcon_check(){
 if ! command -v pkcon > /dev/null 2>&1; then
 echo "Install PackageKit ($distribution)"
 
-    if [ "$distribution" = "CentOS" ] || "$distribution" = "AlmaLinux" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Oracle" ]; then
+    if [ "$distribution" = "CentOS" ] || [ "$distribution" = "AlmaLinux" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Oracle" ]; then
       yum install -y PackageKit > /dev/null 2>&1
       
     elif [ "$distribution" = "Fedora" ]; then
@@ -133,7 +132,7 @@ shutdown -r now || sudo reboot -p || sudo reboot -f
 }
 
 make_update(){
-if [ "$distribution" = "CentOS" ] || "$distribution" = "AlmaLinux" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Oracle" ]; then
+if [ "$distribution" = "CentOS" ] || [ "$distribution" = "AlmaLinux" ] || [ "$distribution" = "Red\ Hat" ] || [ "$distribution" = "Oracle" ]; then
   detect_update || exit
   detect_yum_repo || exit
   detect_yum_fastestmirror || exit
