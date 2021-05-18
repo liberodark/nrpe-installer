@@ -117,7 +117,8 @@ https://www.op5.com/
 - Ubuntu 16.04 / 19.10
 - Centos 7.x / 8.x
 - AlmaLinux 8.x
-- Oracle 7.x
+- RockyLinux 8.x
+- Oracle 7.x / 8.x
 - Red Hat 7.x / 8.x
 - Fedora 15 / 31
 - Clear Linux
