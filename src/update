@@ -5,7 +5,7 @@
 # Thanks :
 # License: GNU GPLv3
 
-version="0.2.1"
+version="0.2.2"
 
 echo "Welcome on Auto Update Script $version"
 
@@ -22,7 +22,8 @@ if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
 distribution=$(cat /etc/*release | grep "PRETTY_NAME" | sed 's/PRETTY_NAME=//g' | sed 's/["]//g' | awk '{print $1}')
 
 update="/usr/bin/check_updates"
-yum_conf="/etc/yum.repos.d/CentOS-Base.repo"
+centos_conf="/etc/yum.repos.d/CentOS-Base.repo"
+alma_conf="/etc/yum.repos.d/almalinux.repo"
 yum_fastestmirror="/etc/yum/pluginconf.d/fastestmirror.conf"
 date=$(date +%Y.%m.%d_%H-%M-%S)
 dest="/root/.backup-repo"
@@ -46,7 +47,7 @@ fi
 }
 
 detect_yum_repo(){
-if [ -f "$yum_conf" ]; then
+if [ -f "$centos_conf" ] || [ -f "$alma_conf" ]; then
 echo "Error Yum configuration already is installed"
 mkdir -p "$dest"
 cp -a /etc/yum.repos.d "$dest"/"$date"
