@@ -100,6 +100,7 @@ fi
 
 detect_dbora(){
 if test -f "/usr/bin/dbora"; then
+echo "Stop DB Ora"
 /usr/bin/dbora stop > /dev/null 2>&1
 fi
 }
@@ -178,6 +179,7 @@ if [ "$distribution" = "CentOS" ] || [ "$distribution" = "AlmaLinux" ] || [ "$di
   detect_yum_repo || exit
   detect_yum_fastestmirror || exit
   gitlab_check
+  detect_dbora || exit
   stop_service
   pkcon_check || exit
   fix_cache || exit
@@ -188,7 +190,6 @@ if [ "$distribution" = "CentOS" ] || [ "$distribution" = "AlmaLinux" ] || [ "$di
 elif [ "$distribution" = "Fedora" ]; then
   detect_update || exit
   gitlab_check
-  detect_dbora || exit
   stop_service
   pkcon_check || exit
   fix_cache || exit
