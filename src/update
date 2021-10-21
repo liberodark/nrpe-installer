@@ -5,7 +5,7 @@
 # Thanks :
 # License: GNU GPLv3
 
-version="0.2.5"
+version="0.2.6"
 
 echo "Welcome on Auto Update Script $version"
 
@@ -98,6 +98,12 @@ else
 fi
 }
 
+detect_dbora(){
+if test -f "/usr/bin/dbora"; then
+/usr/bin/dbora stop > /dev/null 2>&1
+fi
+}
+
 stop_service(){
 echo "Trying to stop Services"
 systemctl stop nrpe > /dev/null 2>&1
@@ -182,6 +188,7 @@ if [ "$distribution" = "CentOS" ] || [ "$distribution" = "AlmaLinux" ] || [ "$di
 elif [ "$distribution" = "Fedora" ]; then
   detect_update || exit
   gitlab_check
+  detect_dbora || exit
   stop_service
   pkcon_check || exit
   fix_cache || exit
