@@ -41,7 +41,7 @@ VMID_CT=$(pct list| awk '/[0-9]/ {print $1}')
 # Stop VM
 for VM in $VMID_VM
 do
-    qm shutdown "$VM" || exit
+    qm shutdown "$VM" > /dev/null 2>&1
 done
 
 for VM in $VMID_VM
@@ -54,7 +54,7 @@ done
 # Stop CT
 for CT in $VMID_CT
 do
-    pct shutdown "$CT" || exit
+    pct shutdown "$CT" > /dev/null 2>&1
 done
 
 for CT in $VMID_CT
