@@ -5,7 +5,7 @@
 # Thanks :
 # License: GNU GPLv3
 
-version="0.2.4"
+version="0.2.5"
 
 echo "Welcome on Auto Update Script $version"
 
@@ -31,6 +31,40 @@ lock="/tmp/auto-update.lock"
 
 exec 9>"${lock}"
 flock -n 9 || exit
+
+detect_pve(){
+if test -e "/etc/pve"; then
+echo "Proxmox stop VMs & CTs"
+VMID_VM=$(qm list| awk '/[0-9]/ {print $1}')
+VMID_CT=$(pct list| awk '/[0-9]/ {print $1}')
+
+# Stop VM
+for VM in $VMID_VM
+do
+    qm shutdown "$VM" || exit
+done
+
+for VM in $VMID_VM
+do
+    while [[ $(qm status "$VM") =~ running ]] ; do
+        sleep 1
+    done
+done
+
+# Stop CT
+for CT in $VMID_CT
+do
+    pct shutdown "$CT" || exit
+done
+
+for CT in $VMID_CT
+do
+    while [[ $(pct status "$CT") =~ running ]] ; do
+        sleep 1
+    done
+done
+fi
+}
 
 detect_update(){
 if [ ! -f "$update" ]; then
@@ -156,6 +190,7 @@ elif [ "$distribution" = "Fedora" ]; then
   reboot_os
     
 elif [ "$distribution" = "Debian" ] || [ "$distribution" = "Raspbian" ] || [ "$distribution" = "Armbian" ] || [ "$distribution" = "Ubuntu" ] || [ "$distribution" = "Deepin" ]; then
+  detect_pve || exit
   detect_update || exit
   gitlab_check
   stop_service
