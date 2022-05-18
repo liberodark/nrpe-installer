@@ -279,10 +279,10 @@ case $STATUS_MSG in
         echo "$STATUS_MSG"
         exit $CRITICAL
         ;;
-#*inactive*)
-#        echo "$STATUS_MSG"
-#        exit $CRITICAL
-#        ;;
+*inactive*)
+        echo "$STATUS_MSG"
+        exit $CRITICAL
+        ;;
 *dead*)
         echo "$STATUS_MSG"
         exit $CRITICAL
@@ -331,6 +331,10 @@ case $STATUS_MSG in
         echo "$SERVICE running: $STATUS_MSG"
         exit $OK
         ;;
+*0\ loaded*)
+        echo "$STATUS_MSG"
+        exit $OK
+        ;;
 "")
 	echo "$SERVICE is not running: no output from service command"
 	exit $CRITICAL
@@ -340,9 +344,4 @@ case $STATUS_MSG in
         echo "Is there a typo in the command or service configuration?: $STATUS_MSG"
         exit $UNKNOWN
         ;;
-*0\ loaded*)
-        echo "$STATUS_MSG"
-        exit $OK
-        ;;
 esac
-
