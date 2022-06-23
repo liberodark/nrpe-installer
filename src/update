@@ -5,7 +5,7 @@
 # Thanks :
 # License: GNU GPLv3
 
-version="0.2.6"
+version="0.2.7"
 
 echo "Welcome on Auto Update Script $version"
 
@@ -113,6 +113,8 @@ systemctl stop dockerd > /dev/null 2>&1
 systemctl stop alfresco > /dev/null 2>&1
 /etc/init.d/confluence stop > /dev/null 2>&1 || systemctl stop confluence > /dev/null 2>&1
 /etc/init.d/jira stop > /dev/null 2>&1 || systemctl stop jira > /dev/null 2>&1
+systemctl stop nexus > /dev/null 2>&1
+systemctl stop jenkins > /dev/null 2>&1
 systemctl stop httpd > /dev/null 2>&1
 systemctl stop nginx > /dev/null 2>&1
 systemctl stop apache2 > /dev/null 2>&1
