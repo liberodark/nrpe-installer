@@ -32,7 +32,7 @@ fi
 }
 
 move_log(){
-if ! mount -a; then
+if ! mount -a > /dev/null 2>&1; then
     echo "Mount NFS Error"
     export DIR_365="/Backup-Local/365/"
     export DIR_90="/Backup-Local/90/"
