@@ -19,7 +19,7 @@ if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
 #=================================================
 
 TEMP_365="/Data/tmp/365/"
-TEMP_90="/Data/tmp/365/"
+TEMP_90="/Data/tmp/90/"
 DIR_365="/Backup/365/"
 DIR_90="/Backup/90/"
 PWD="My_Password"
