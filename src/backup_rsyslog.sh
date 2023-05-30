@@ -5,7 +5,7 @@
 # Thanks : 
 # License: GNU GPLv3
 
-version="0.0.3"
+version="0.0.4"
 echo "Welcome on Backup Log Script $version"
 
 #=================================================
@@ -40,6 +40,8 @@ if ! mount -a > /dev/null 2>&1; then
     mkdir -p "${DIR_90}" || exit
 fi
 
+mkdir -p /tmp/365 || exit
+mkdir -p /tmp/90 || exit
 mkdir -p "${TEMP_365}" || echo "Create ${TEMP_365} Error"
 mkdir -p "${TEMP_90}" || echo "Create ${TEMP_90} Error"
 mv /Data/365/*.log "${TEMP_365}" || echo "Move Log in ${TEMP_365} Error"
@@ -49,7 +51,7 @@ systemctl restart rsyslog || echo "Rsyslog Service Error"
 
 backup_365(){
 check_logs -threads 4 \
-             -lock "${TEMP_365}file.lock" \
+             -lock "/tmp/365/file.lock" \
              -encrypt "${PWD}" \
              -in-path "${TEMP_365}" \
              -out-path "${DIR_365}" \
@@ -59,7 +61,7 @@ check_logs -threads 4 \
 
 backup_90(){
 check_logs -threads 4 \
-             -lock "${TEMP_90}file.lock" \
+             -lock "/tmp/90/file.lock" \
              -encrypt "${PWD}" \
              -in-path "${TEMP_90}" \
              -out-path "${DIR_90}" \
