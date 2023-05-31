@@ -5,7 +5,7 @@
 # Thanks :
 # License: GNU GPLv3
 
-version="0.2.9"
+version="0.3.0"
 
 echo "Welcome on Auto Update Script $version"
 
@@ -35,13 +35,15 @@ flock -n 9 || exit
 detect_pve(){
 if test -e "/etc/pve"; then
 echo "Proxmox stop VMs & CTs"
-VMID_VM=$(qm list| awk '/[0-9]/ {print $1}')
-VMID_CT=$(pct list| awk '/[0-9]/ {print $1}')
+QM_BIN=$(command -v qm)
+PCT_BIN=$(command -v pct)
+VMID_VM=$("$QM_BIN" list| awk '/[0-9]/ {print $1}')
+VMID_CT=$("$PCT_BIN" list| awk '/[0-9]/ {print $1}')
 
 # Stop VM
 for VM in $VMID_VM
 do
-    qm shutdown "$VM" > /dev/null 2>&1
+    "$QM_BIN" shutdown "$VM" > /dev/null 2>&1
 done
 
 for VM in $VMID_VM
@@ -54,7 +56,7 @@ done
 # Stop CT
 for CT in $VMID_CT
 do
-    pct shutdown "$CT" > /dev/null 2>&1
+    "$PCT_BIN" shutdown "$CT" > /dev/null 2>&1
 done
 
 for CT in $VMID_CT
