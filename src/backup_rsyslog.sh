@@ -5,7 +5,7 @@
 # Thanks : 
 # License: GNU GPLv3
 
-version="0.0.4"
+version="0.0.5"
 echo "Welcome on Backup Log Script $version"
 
 #=================================================
@@ -42,8 +42,11 @@ fi
 
 mkdir -p "${TEMP_365}" || echo "Create ${TEMP_365} Error"
 mkdir -p "${TEMP_90}" || echo "Create ${TEMP_90} Error"
-mv /Data/365/*.log "${TEMP_365}" || echo "Move Log in ${TEMP_365} Error"
-mv /Data/90/*.log "${TEMP_90}" || echo "Move Log in ${TEMP_90} Error"
+cp -a /Data/365/*.log "${TEMP_365}" || echo "Copy Log in ${TEMP_365} Error"
+cp -a /Data/90/*.log "${TEMP_90}" || echo "Copy Log in ${TEMP_90} Error"
+sleep 1
+truncate -s 0 /Data/365/*.log || echo "Clean Log in ${TEMP_365} Error"
+truncate -s 0 /Data/90/*.log || echo "Clean Log in ${TEMP_90} Error"
 systemctl restart rsyslog || echo "Rsyslog Service Error"
 }
 
